@@ -1,0 +1,3 @@
+/home2/christian/dev/filelister/tests/data/sample_01.txt
+/home2/christian/dev/filelister/tests/data/sample_02.txt
+/home2/christian/dev/filelister/tests/data/sample_03.txt
