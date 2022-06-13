@@ -28,8 +28,8 @@ class Filelist:
             else:
                 set2 = set(other)
             return set1.union(set2)
-        except TypeError:
-            raise TypeError(f'{type(other)} is an invalid input type')
+        except TypeError as te:
+            raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def __sub__(self, other):
         set1 = set(self.data)
@@ -42,8 +42,8 @@ class Filelist:
             else:
                 set2 = set(other)
             return set1.difference(set2)
-        except TypeError:
-            raise TypeError(f'{type(other)} is an invalid input type')
+        except TypeError as te:
+            raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def __str__(self):
         if self.data:
@@ -78,8 +78,8 @@ class Filelist:
             else:
                 set2 = set(other)
             return set1.union(set2)
-        except TypeError:
-            raise TypeError(f'{type(other)} is an invalid input type')
+        except TypeError as te:
+            raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def difference(self, other):
         """
@@ -92,8 +92,8 @@ class Filelist:
             else:
                 set2 = set(other)
             return set1.difference(set2)
-        except TypeError:
-            raise TypeError(f'{type(other)} is an invalid input type')
+        except TypeError as te:
+            raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def intersection(self, other):
         """
@@ -106,8 +106,8 @@ class Filelist:
             else:
                 set2 = set(other)
             return set1.intersection(set2)
-        except TypeError:
-            raise TypeError(f'{type(other)} is an invalid input type')
+        except TypeError as te:
+            raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def sort(self):
         """
@@ -147,8 +147,8 @@ def create_from_list(data):
         if data[0][0] == '/':
             return data
         return [relative_to_abs(fname) for fname in data]
-    except TypeError:
-        raise TypeError('data contains non-string type')
+    except TypeError as te:
+        raise TypeError('data contains non-string type') from te
 
 
 def create_from_set(data):
