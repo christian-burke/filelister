@@ -1,10 +1,14 @@
-"""Class build to handle Filelists"""
+"""
+Class build to handle Filelists
+"""
 
 import os
 
 
 class Filelist:
-    """Main class contains most functions"""
+    """
+    Main class contains most functions
+    """
     def __init__(self, data=None):
         if data:
             self.data = self.accept_input(data)
@@ -50,7 +54,9 @@ class Filelist:
         return 'Filelist is empty'
 
     def accept_input(self, data):
-        """Handles acceptable input types"""
+        """
+        Handles acceptable input types
+        """
         if isinstance(data, list):
             return self.create_from_list(data)
         if isinstance(data, set):
@@ -62,7 +68,9 @@ class Filelist:
         return
 
     def create_from_list(self, data):
-        """Handles list inputs for Filelist"""
+        """
+        Handles list inputs for Filelist
+        """
         try:
             if data[0][0] == '/':
                 return data
@@ -71,14 +79,18 @@ class Filelist:
             raise TypeError('data contains non-string type')
 
     def create_from_set(self, data):
-        """Handles set input for Filelist"""
+        """
+        Handles set input for Filelist
+        """
         if data[0][0] == '/':
             return list(data)
         else:
             return [self.relative_to_abs(fname) for fname in data]
 
     def create_from_tuple(self, data):
-        """Handles tuple inputs for Filelist"""
+        """
+        Handles tuple inputs for Filelist
+        """
         if data[0][0] == '/':
             return data
         else:
