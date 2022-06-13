@@ -1,0 +1,1 @@
+../tests/data/images/sample_file.txt
