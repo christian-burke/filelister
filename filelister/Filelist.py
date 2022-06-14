@@ -5,6 +5,7 @@ Class build to handle Filelists
 import os
 from termcolor import colored
 
+
 class Filelist:
     """
     Main class contains most functions
@@ -123,7 +124,7 @@ class Filelist:
         """
         Finds difference between two filelists
         """
-        set1=set(self.data)
+        set1 = set(self.data)
         try:
             if isinstance(other, Filelist):
                 set2 = set(other.data)
@@ -211,6 +212,7 @@ def create_from_tuple(data):
     if data[0][0] == '/':
         return list(data)
     return [relative_to_abs(fname) for fname in data]
+
 
 def create_from_dir(data):
     """
