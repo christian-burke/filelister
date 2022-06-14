@@ -10,7 +10,9 @@ class Filelist:
     """
     Main class contains most functions
     """
+ 
     def __init__(self, data=None):
+        self.acceptable_types = [list, set, tuple, str, Filelist]
         if data:
             self.data = accept_input(data)
         elif type(data) not in [list, set, tuple, None]:
@@ -19,33 +21,69 @@ class Filelist:
             self.data = None
 
     def __add__(self, other):
-        set1 = set(self.data)
-        if isinstance(other, str):
-            set1.add(other)
-            return set1
         try:
             if isinstance(other, Filelist):
-                set2 = set(other.data)
+                return self.union(other)
             else:
-                set2 = set(other)
-            return set1.union(set2)
+                other_flist = Filelist(other)
+                return self.union(other_flist)
         except TypeError as te:
-            raise TypeError(f'{type(other)} is an invalid input type') from te
+            raise te
+#            if type(other) not in self.acceptable_types:
+#                raise TypeError(f'{type(other)} is an invalid input type.')
+#            set1 = set(self.data)
+#            if isinstance(other, str):
+#                if os.path.exists(other):
+#                    if os.path.isfile(other):
+#                        set1.add(str(os.path.abspath(other)))
+#                        return set1
+#                    if os.path.isdir(other):
+#                        other_list = Filelist(other)
+#                        return self.union(other_list)
+#                raise TypeError(f'{other} is not a valid filepath')
+#            if isinstance(other, Filelist):
+#                set2 = set(other.data)
+#            else:
+#                set2 = set()
+#                for obj in other:
+#                    if os.path.isfile(obj):
+#                        set2.add(os.path.abspath(obj))
+#                    else:
+#                        raise TypeError(f'{obj} is not a valid filepath')
+#            return set1.union(set2)
+        except TypeError as te:
+            raise te from te
 
     def __iadd__(self, other):
-        set1 = set(self.data)
-        if isinstance(other, str):
-            set1.add(other)
-            self.data = list(set1)
         try:
             if isinstance(other, Filelist):
-                set2 = set(other.data)
+                self.data = list(self + other)
             else:
-                set2 = set(other)
-            self.data = list(set1.union(set2))
+                other_flist = Filelist(other)
+                self.data = list(self + other_flist)
             return self
         except TypeError as te:
-            raise TypeError(f'{type(other)} is an invalid input type') from te
+            raise te
+#        set1 = set(self.data)
+#        if isinstance(other, str):
+#            if os.path.exists(other):
+#                if os.path.isfile(other):
+#                    set1.add(str(os.path.abspath(other)))
+#                    self.data = list(set1)
+#                    return self
+#                if os.path.isdir(other):
+#                    other_list = Filelist(other)
+#                    self.data = list(self + other_list)
+#                    return self
+#        try:
+#            if isinstance(other, Filelist):
+#                set2 = set(other.data)
+#            else:
+#                set2 = set(other)
+#            self.data = list(set1.union(set2))
+#            return self
+#        except TypeError as te:
+#            raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def __sub__(self, other):
         set1 = set(self.data)
@@ -177,7 +215,7 @@ def accept_input(data):
         if os.path.isdir(data):
             return create_from_dir(data)
         if os.path.isfile(data):
-            return [data]
+            return [os.path.abspath(data)]
         raise TypeError(f'{data} does not match a valid file or directory')
     if not data:
         return None
@@ -189,11 +227,14 @@ def create_from_list(data):
     Handles list inputs for Filelist
     """
     try:
+        for fname in data:
+            if not os.path.isfile(fname):
+                raise TypeError(f'{fname} does not match a valid file')
         if data[0][0] == '/':
             return data
         return [relative_to_abs(fname) for fname in data]
     except TypeError as te:
-        raise TypeError('data contains non-string type') from te
+        raise te from te
 
 
 def create_from_set(data):
@@ -201,6 +242,10 @@ def create_from_set(data):
     Handles set input for Filelist
     """
     data = list(data)
+    for fname in data:
+        if not os.path.isfile(fname):
+            raise TypeError(f'{fname} does not match a valid file')
+
     if data[0][0] == '/':
         return data
     return [relative_to_abs(fname) for fname in data]
@@ -210,6 +255,9 @@ def create_from_tuple(data):
     """
     Handles tuple inputs for Filelist
     """
+    for fname in data:
+        if not os.path.isfile(fname):
+            raise TypeError(f'{fname} does not match a valid file')
     if data[0][0] == '/':
         return list(data)
     return [relative_to_abs(fname) for fname in data]
