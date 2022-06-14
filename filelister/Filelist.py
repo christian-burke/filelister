@@ -32,10 +32,10 @@ class Filelist:
             raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def __iadd__(self, other):
-        set1=set(self.data)
+        set1 = set(self.data)
         if isinstance(other, str):
             set1.add(other)
-            self.data=list(set1)
+            self.data = list(set1)
         try:
             if isinstance(other, Filelist):
                 set2 = set(other.data)
@@ -82,6 +82,29 @@ class Filelist:
                 f.write(str(path) + os.linesep)
             print(f'filelist written to {outfile}')
 
+    def compare(self, other):
+        """
+        Compares two filelists, returning the differences between the lists
+        """
+        set1 = set(self.data)
+        set_diff = {}
+        try:
+            if isinstance(other, Filelist):
+                set2 = set(other.data)
+            else:
+                set2 = set(other)
+            new_files = set1.difference(set2)
+            removed_files = set2.difference(set1)
+            set_diff['+'] = new_files
+            set_diff['-'] = removed_files
+            for diff in set_diff['+']:
+                print(colored(f'[+] {diff}', 'green'))
+            for diff in set_diff['-']:
+                print(colored(f'[-] {diff}', 'red'))
+            return set_diff
+        except TypeError as te:
+            raise TypeError(f'{type(other)} is an invalid input type') from te
+
     def union(self, other):
         """
         Finds union of two filelists
@@ -100,23 +123,13 @@ class Filelist:
         """
         Finds difference between two filelists
         """
-        set1 = set(self.data)
-        set_diff = {}
+        set1=set(self.data)
         try:
             if isinstance(other, Filelist):
                 set2 = set(other.data)
             else:
                 set2 = set(other)
-            #return set1.difference(set2)
-            new_files = set1.difference(set2)
-            removed_files = set2.difference(set1)
-            set_diff['+'] = new_files
-            set_diff['-'] = removed_files
-            for diff in set_diff['+']:
-                print(colored(f'+ {diff}', 'green'))
-            for diff in set_diff['-']:
-                print(colored(f'- {diff}', 'red'))
-            return set_diff
+            return set1.difference(set2)
         except TypeError as te:
             raise TypeError(f'{type(other)} is an invalid input type') from te
 
@@ -200,6 +213,9 @@ def create_from_tuple(data):
     return [relative_to_abs(fname) for fname in data]
 
 def create_from_dir(data):
+    """
+    Handles directory inputs for Filelist
+    """
     data_out = []
     for path, _, files in os.walk(data):
         for filename in files:
