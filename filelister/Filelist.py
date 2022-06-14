@@ -178,6 +178,7 @@ def accept_input(data):
             return create_from_dir(data)
         if os.path.isfile(data):
             return [data]
+        raise TypeError(f'{data} does not match a valid file or directory')
     if not data:
         return None
     raise TypeError(f'{type(data)} is an invalid input type')
