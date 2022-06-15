@@ -7,7 +7,7 @@ import os
 import filelister as fs
 
 
-def read_filelist(infile):
+def read_filelist(infile, ext=[], exists=False):
     """
     reads a filelist from a text file and stores it in Filelist class
     """
@@ -24,7 +24,7 @@ def read_filelist(infile):
                                                        fpath.rstrip()))
                     for fpath in f]
             check_duplicate_path(fpaths)
-            return fs.Filelist(fpaths)
+            return fs.Filelist(fpaths, ext=ext, exists=exists)
     except Exception as e:
         raise e
 

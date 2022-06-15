@@ -11,7 +11,8 @@ class Filelist:
     Main class contains most functions
     """
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, ext=[], exists=True):
+        self.ext = []
         try:
             self.acceptable_types = [list, set, tuple, str,
                                      Filelist, type(None)]
@@ -21,6 +22,10 @@ class Filelist:
                 self._data = accept_input(data)
             else:
                 self._data = []
+            if exists:
+                self.check_file_exists()
+            if ext:
+                self.check_extensions(ext)
         except Exception as e:
             raise e
 
@@ -232,6 +237,27 @@ class Filelist:
         """
         self.data.sort()
 
+    def check_extensions(self, ext):
+        if not isinstance(ext, list):
+            raise TypeError('file extensions must be a list')
+        new_data = []
+        for filename in self.data:
+            if os.path.splitext(filename)[1] in ext:
+                new_data.append(filename)
+            else:
+                print(colored(f'{filename} is not an accepted file type',
+                              'red'))
+        self._data = new_data
+
+    def check_file_exists(self):
+        new_data = []
+        for filename in self.data:
+            if os.path.exists(filename):
+                new_data.append(filename)
+            else:
+                print(colored(f'{filename} does not exist', 'red'))
+        self._data = new_data
+
 
 def relative_to_abs(path):
     """
@@ -267,49 +293,53 @@ def create_from_list(data):
     Handles list inputs for Filelist
     """
     try:
-        for fname in data:
-            if not os.path.isfile(fname):
-                raise IOError(f'{fname} does not match a valid file')
         if data[0][0] == '/':
             return data
         return [relative_to_abs(fname) for fname in data]
-    except TypeError as te:
-        raise te
+    except Exception as e:
+        raise e
 
 
 def create_from_set(data):
     """
     Handles set input for Filelist
     """
-    data = list(data)
-    for fname in data:
-        if not os.path.isfile(fname):
-            raise IOError(f'{fname} does not match a valid file')
-
-    if data[0][0] == '/':
-        return data
-    return [relative_to_abs(fname) for fname in data]
+    try:
+        data = list(data)
+        if data[0][0] == '/':
+            return data
+        return [relative_to_abs(fname) for fname in data]
+    except Exception as e:
+        raise e
 
 
 def create_from_tuple(data):
     """
     Handles tuple inputs for Filelist
     """
-    for fname in data:
-        if not os.path.isfile(fname):
-            raise IOError(f'{fname} does not match a valid file')
-    if data[0][0] == '/':
-        return list(data)
-    return [relative_to_abs(fname) for fname in data]
+    try:
+        if data[0][0] == '/':
+            return list(data)
+        return [relative_to_abs(fname) for fname in data]
+    except Exception as e:
+        raise e
 
 
 def create_from_dir(data):
     """
     Handles directory inputs for Filelist
     """
-    data_out = []
-    for path, _, files in os.walk(data):
-        for filename in files:
-            fpath = os.path.abspath(os.path.join(path, filename))
-            data_out.append(str(fpath))
-    return data_out
+    try:
+        data_out = []
+        for path, _, files in os.walk(data):
+            for filename in files:
+                fpath = os.path.abspath(os.path.join(path, filename))
+                data_out.append(str(fpath))
+        return data_out
+    except Exception as e:
+        raise e
+
+
+def write_filelist(dirname, outfile, relative=True, ext=[], exists=True):
+    flist = Filelist(dirname, ext=ext, exists=exists)
+    flist.save(outfile, relative)

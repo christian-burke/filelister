@@ -1,0 +1,13 @@
+README.md
+setup.py
+filelister/Filelist.py
+filelister/__init__.py
+filelister/read_filelist.py
+filelister.egg-info/PKG-INFO
+filelister.egg-info/SOURCES.txt
+filelister.egg-info/dependency_links.txt
+filelister.egg-info/requires.txt
+filelister.egg-info/top_level.txt
+tests/__init__.py
+tests/test_filelist_basic.py
+tests/test_sanity.py

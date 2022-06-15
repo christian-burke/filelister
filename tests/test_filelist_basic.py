@@ -38,9 +38,8 @@ class CreateFromType:
         test = 'test_file'
         test_list = sample_data.copy()
         test_list.append(test)
-        with pytest.raises(IOError) as excinfo:
-            fs.Filelist(test_list)
-            assert excinfo.msg == 'test_file does not match a valid file'
+        fs.Filelist(test_list)
+        assert set(flist.data) == set(test_data)
 
     def test_filelist_create_from_abs_set(self):
         flist = fs.Filelist(set(test_data))
@@ -91,7 +90,7 @@ class TestAdd:
         assert set(flist3.data) == test_set
 
     def test_filelist_add_bad_string(self):
-        with pytest.raises(IOError, match =
+        with pytest.raises(OSError, match =
                            'hello world! does not match a valid file or directory'):
             flist = fs.Filelist(sample_data)
             flist + 'hello world!'
@@ -109,11 +108,11 @@ class TestAdd:
 
     def test_filelist_add_bad_list(self):
         test = str(rel_to_abs('test_file'))
-        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
-            flist = fs.Filelist(sample_data)
-            test_list = sample_data.copy()
-            test_list.append(test)
-            flist2 = flist + test_list
+        flist = fs.Filelist(sample_data)
+        test_list = sample_data.copy()
+        test_list.append(test)
+        flist2 = flist + test_list
+        assert set(flist2.data) == set(sample_data)
 
     def test_add_invalid(self):
         test = 5
@@ -160,9 +159,9 @@ class TestSub:
         test = str(rel_to_abs('test_file'))
         test_list = sample_data.copy()
         test_list.append(test)
-        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
-            flist = fs.Filelist(sample_data)
-            flist - test_list
+        flist = fs.Filelist(sample_data)
+        flist2 = flist - test_list
+        assert set(flist2.data) == set()
 
 
     def test_sub_invalid(self):
@@ -193,7 +192,7 @@ class TestIadd:
         assert set(flist.data) == test_set
 
     def test_iadd_bad_string(self):
-        with pytest.raises(IOError, match = 'test_file does not match a valid file'):
+        with pytest.raises(OSError, match = f'test_file does not match a valid file or directory'):
             flist = fs.Filelist(sample_data)
             flist += 'test_file'
 
@@ -215,11 +214,11 @@ class TestIadd:
 
     def test_iadd_bad_list(self):
         test = str(rel_to_abs('test_file'))
-        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
-            flist = fs.Filelist(sample_data)
-            test_list = sample_data.copy()
-            test_list.append(test)
-            flist += test_list
+        flist = fs.Filelist(sample_data)
+        test_list = sample_data.copy()
+        test_list.append(test)
+        flist += test_list
+        assert set(flist.data) == set(sample_data)
 
 
 class TestIsub:
@@ -264,11 +263,11 @@ class TestIsub:
 
     def test_isub_bad_list(self):
         test = str(rel_to_abs('test_file'))
-        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
-            flist = fs.Filelist(sample_data)
-            test_list = sample_data.copy()
-            test_list.append(test)
-            flist -= test_list
+        flist = fs.Filelist(sample_data)
+        test_list = sample_data.copy()
+        test_list.append(test)
+        flist -= test_list
+        assert set(flist.data) == set()
 
 class TestSetCompars:
 
@@ -288,11 +287,11 @@ class TestSetCompars:
     def test_compare_error_FnF(self):
         test = 'test_file'
         test_list = sample_data2.copy()
-        with pytest.raises(IOError) as excinfo:
-            test_list.append(test)
-            flist = fs.Filelist(sample_data)
-            flist.compare(test_list)
-            assert excinfo.msg == 'test_file does not match a valid file'
+        test_list.append(test)
+        flist = fs.Filelist(sample_data)
+        diff = flist.compare(test_list)
+        assert diff['+'] == {test_data[0], test_data[1]}
+        assert diff['-'] == {test_data2[1], test_data2[2]}
 
     def test_union(self):
         flist = fs.Filelist(sample_data)

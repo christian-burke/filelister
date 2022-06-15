@@ -1,2 +1,1 @@
-from .filelister import Filelist, read_filelist
-
+from .filelister import Filelist, read_filelist, write_filelist
