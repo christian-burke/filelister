@@ -13,61 +13,75 @@ class Filelist:
 
     def __init__(self, data=None):
         try:
-            self.acceptable_types = [list, set, tuple, str, Filelist]
-            if data:
-                self.data = accept_input(data)
-            elif type(data) not in [list, set, tuple, None]:
+            self.acceptable_types = [list, set, tuple, str,
+                                     Filelist, type(None)]
+            if type(data) not in self.acceptable_types:
                 raise TypeError(f'{type(data)} is an invalid input type.')
+            if data:
+                self._data = accept_input(data)
             else:
-                self.data = None
+                self._data = []
         except Exception as e:
             raise e
+
+    @property
+    def data(self):
+        """
+        data property and setter method
+        """
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        if data:
+            self._data = accept_input(data)
+        else:
+            self._data = []
 
     def __add__(self, other):
         try:
             if isinstance(other, Filelist):
-                return self.union(other)
+                return Filelist(self.union(other))
             other_flist = Filelist(other)
-            return self.union(other_flist)
+            return Filelist(self.union(other_flist))
         except TypeError as te:
             raise te
 
     def __iadd__(self, other):
         try:
             if isinstance(other, Filelist):
-                self.data = list(self + other)
+                new_flist = self + other
             else:
                 other_flist = Filelist(other)
-                self.data = list(self + other_flist)
+                new_flist = self + other_flist
+            self.data = new_flist.data
             return self
         except TypeError as te:
             raise te
 
     def __sub__(self, other):
-        set1 = set(self.data)
         try:
             if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            set2 = set(set2_list.data)
-            return set1.difference(set2)
+                return Filelist(self.difference(other))
+            other_flist = Filelist(other)
+            return Filelist(self.difference(other_flist))
         except TypeError as te:
             raise te
 
     def __isub__(self, other):
         try:
             if isinstance(other, Filelist):
-                self.data = list(self - other)
+                new_flist = self - other
             else:
                 other_flist = Filelist(other)
-                self.data = list(self - other_flist)
+                new_flist = self - other_flist
+            self.data = new_flist.data
             return self
         except TypeError as te:
             raise te
 
     def __str__(self):
-        if self.data:
+        if self._data:
             str_out = colored('printing filelist...', 'blue')
             for fname in self.data:
                 str_out += '\n' + fname
@@ -102,8 +116,10 @@ class Filelist:
             set2 = set(set2_list.data)
             new_files = set1.difference(set2)
             removed_files = set2.difference(set1)
-            set_diff['+'] = new_files
-            set_diff['-'] = removed_files
+            if new_files:
+                set_diff['+'] = new_files
+            if removed_files:
+                set_diff['-'] = removed_files
             for diff in set_diff['+']:
                 print(colored(f'[+] {diff}', 'green'))
             for diff in set_diff['-']:
@@ -179,14 +195,14 @@ def accept_input(data):
         return create_from_set(data)
     if isinstance(data, tuple):
         return create_from_tuple(data)
+    if isinstance(data, Filelist):
+        return data.data
     if isinstance(data, str):
         if os.path.isdir(data):
             return create_from_dir(data)
         if os.path.isfile(data):
             return [os.path.abspath(data)]
         raise TypeError(f'{data} does not match a valid file or directory')
-    if not data:
-        return None
     raise TypeError(f'{type(data)} is an invalid input type')
 
 

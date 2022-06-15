@@ -1,7 +1,7 @@
+import sys
 import os
 import pytest
 import filelister as fs
-
 
 def rel_to_abs(path):
     return os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(__file__), path))
@@ -70,41 +70,42 @@ class TestAdd:
         flist = fs.Filelist(sample_data)
         flist2 = fs.Filelist(sample_data2)
         flist3 = flist + flist2
-        assert flist3 == test_set
+        assert set(flist3.data) == test_set
 
     def test_filelist_add_abs_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist + str(rel_to_abs('data/sample_04.txt'))
         set1 = set(test_data)
         set1.add(os.path.abspath(rel_to_abs('data/sample_04.txt')))
-        assert flist3 == set1
+        assert set(flist3.data) == set1
 
     def test_filelist_add_rel_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist + str(os.path.relpath(rel_to_abs('data/sample_04.txt'), os.getcwd()))
         set1 = set(test_data)
         set1.add(os.path.abspath(rel_to_abs('data/sample_04.txt')))
-        assert flist3 == set1
+        assert set(flist3.data) == set1
 
     def test_add_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist + str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert set(flist3) == test_set
+        assert set(flist3.data) == test_set
 
     def test_filelist_add_bad_string(self):
-        with pytest.raises(TypeError, match = 'hello world! does not match a valid file or directory'):
+        with pytest.raises(TypeError, match =
+                           'hello world! does not match a valid file or directory'):
             flist = fs.Filelist(sample_data)
             flist + 'hello world!'
 
     def test_filelist_add_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist + sample_data2
-        assert flist2 == test_set
+        assert set(flist2.data) == test_set
 
     def test_filelist_add_rel_list(self):
         flist = fs.Filelist(rel_sample)
         flist2 = flist + rel_sample2
-        assert flist2 == test_set
+        assert set(flist2.data) == test_set
 
 
     def test_filelist_add_bad_list(self):
@@ -127,32 +128,33 @@ class TestSub:
     def test_sub_abs_string(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist - str(sample_data[2])
-        assert flist2 == set(sample_data[:2])
+        assert set(flist2.data) == set(sample_data[:2])
 
     def test_sub_rel_string(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist - str(rel_sample[2])
-        assert flist2 == set(test_data[:2])
+        assert set(flist2.data) == set(test_data[:2])
 
     def test_sub_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist - str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert set(flist3) == set()
+        assert set(flist3.data) == set()
 
     def test_filelist_sub_bad_string(self):
-        with pytest.raises(TypeError, match = 'hello world! does not match a valid file or directory'):
+        with pytest.raises(TypeError, match = 
+                           'hello world! does not match a valid file or directory'):
             flist = fs.Filelist(sample_data)
             flist - 'hello world!'
 
     def test_filelist_sub_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist - sample_data2
-        assert flist2 == set(test_data[:2])
+        assert set(flist2.data) == set(test_data[:2])
 
     def test_filelist_sub_rel_list(self):
         flist = fs.Filelist(rel_sample)
         flist2 = flist - rel_sample2
-        assert flist2 == set(test_data[:2])
+        assert set(flist2.data) == set(test_data[:2])
 
 
     def test_filelist_sub_bad_list(self):
@@ -238,7 +240,7 @@ class TestIsub:
     def test_isub_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist -= str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert set(flist.data) == set()
+        assert flist.data == []
 
     def test_isub_bad_string(self):
         with pytest.raises(TypeError, match = 'cocks does not match a valid file'):
