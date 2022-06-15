@@ -44,8 +44,8 @@ class Filelist:
                 return Filelist(self.union(other))
             other_flist = Filelist(other)
             return Filelist(self.union(other_flist))
-        except TypeError as te:
-            raise te
+        except Exception as e:
+            raise e
 
     def __iadd__(self, other):
         try:
@@ -56,8 +56,8 @@ class Filelist:
                 new_flist = self + other_flist
             self.data = new_flist.data
             return self
-        except TypeError as te:
-            raise te
+        except Exception as e:
+            raise e
 
     def __sub__(self, other):
         try:
@@ -65,8 +65,8 @@ class Filelist:
                 return Filelist(self.difference(other))
             other_flist = Filelist(other)
             return Filelist(self.difference(other_flist))
-        except TypeError as te:
-            raise te
+        except Exception as e:
+            raise e
 
     def __isub__(self, other):
         try:
@@ -77,8 +77,8 @@ class Filelist:
                 new_flist = self - other_flist
             self.data = new_flist.data
             return self
-        except TypeError as te:
-            raise te
+        except Exception as e:
+            raise e
 
     def __str__(self):
         if self._data:
@@ -125,8 +125,8 @@ class Filelist:
             for diff in set_diff['-']:
                 print(colored(f'[-] {diff}', 'red'))
             return set_diff
-        except TypeError as te:
-            raise te
+        except Exception as e:
+            raise e
 
     def union(self, other):
         """
@@ -139,8 +139,8 @@ class Filelist:
             else:
                 set2_list = Filelist(other)
             return set1.union(set(set2_list.data))
-        except TypeError as te:
-            raise te
+        except Exception as e:
+            raise e
 
     def difference(self, other):
         """
@@ -153,8 +153,8 @@ class Filelist:
             else:
                 set2_list = Filelist(other)
             return set1.difference(set(set2_list.data))
-        except TypeError as te:
-            raise te
+        except Exception as e:
+            raise e
 
     def intersection(self, other):
         """
@@ -163,12 +163,68 @@ class Filelist:
         set1 = set(self.data)
         try:
             if isinstance(other, Filelist):
-                set2 = other
+                set2_list = other
             else:
-                set2 = set(other)
-            return set1.intersection(set2)
-        except TypeError as te:
-            raise te
+                set2_list = Filelist(other)
+            return set1.intersection(set(set2_list.data))
+        except Exception as e:
+            raise e
+
+    def isdisjoint(self, other):
+        """
+        Finds intersection of two filelists
+        """
+        set1 = set(self.data)
+        try:
+            if isinstance(other, Filelist):
+                set2_list = other
+            else:
+                set2_list = Filelist(other)
+            return set1.isdisjoint(set(set2_list.data))
+        except Exception as e:
+            raise e
+
+    def issubset(self, other):
+        """
+        Finds intersection of two filelists
+        """
+        set1 = set(self.data)
+        try:
+            if isinstance(other, Filelist):
+                set2_list = other
+            else:
+                set2_list = Filelist(other)
+            return set1.issubset(set(set2_list.data))
+        except Exception as e:
+            raise e
+
+    def issuperset(self, other):
+        """
+        Finds intersection of two filelists
+        """
+        set1 = set(self.data)
+        try:
+            if isinstance(other, Filelist):
+                set2_list = other
+            else:
+                set2_list = Filelist(other)
+            return set1.issuperset(set(set2_list.data))
+        except Exception as e:
+            raise e
+
+    def symmetric_difference(self, other):
+        """
+        Finds intersection of two filelists
+        """
+        set1 = set(self.data)
+        try:
+            if isinstance(other, Filelist):
+                set2_list = other
+            else:
+                set2_list = Filelist(other)
+            return set1.symmetric_difference(set(set2_list.data))
+        except Exception as e:
+            raise e
 
     def sort(self):
         """
@@ -202,7 +258,7 @@ def accept_input(data):
             return create_from_dir(data)
         if os.path.isfile(data):
             return [os.path.abspath(data)]
-        raise TypeError(f'{data} does not match a valid file or directory')
+        raise IOError(f'{data} does not match a valid file or directory')
     raise TypeError(f'{type(data)} is an invalid input type')
 
 
@@ -213,7 +269,7 @@ def create_from_list(data):
     try:
         for fname in data:
             if not os.path.isfile(fname):
-                raise TypeError(f'{fname} does not match a valid file')
+                raise IOError(f'{fname} does not match a valid file')
         if data[0][0] == '/':
             return data
         return [relative_to_abs(fname) for fname in data]
@@ -228,7 +284,7 @@ def create_from_set(data):
     data = list(data)
     for fname in data:
         if not os.path.isfile(fname):
-            raise TypeError(f'{fname} does not match a valid file')
+            raise IOError(f'{fname} does not match a valid file')
 
     if data[0][0] == '/':
         return data
@@ -241,7 +297,7 @@ def create_from_tuple(data):
     """
     for fname in data:
         if not os.path.isfile(fname):
-            raise TypeError(f'{fname} does not match a valid file')
+            raise IOError(f'{fname} does not match a valid file')
     if data[0][0] == '/':
         return list(data)
     return [relative_to_abs(fname) for fname in data]

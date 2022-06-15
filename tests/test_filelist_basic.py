@@ -1,4 +1,3 @@
-import sys
 import os
 import pytest
 import filelister as fs
@@ -36,12 +35,12 @@ class CreateFromType:
 
 
     def test_filelist_create_from_bad_list(self):
-        test = 'cocks'
+        test = 'test_file'
         test_list = sample_data.copy()
         test_list.append(test)
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(IOError) as excinfo:
             fs.Filelist(test_list)
-            assert excinfo.msg == 'cocks does not match a valid file'
+            assert excinfo.msg == 'test_file does not match a valid file'
 
     def test_filelist_create_from_abs_set(self):
         flist = fs.Filelist(set(test_data))
@@ -92,7 +91,7 @@ class TestAdd:
         assert set(flist3.data) == test_set
 
     def test_filelist_add_bad_string(self):
-        with pytest.raises(TypeError, match =
+        with pytest.raises(IOError, match =
                            'hello world! does not match a valid file or directory'):
             flist = fs.Filelist(sample_data)
             flist + 'hello world!'
@@ -109,8 +108,8 @@ class TestAdd:
 
 
     def test_filelist_add_bad_list(self):
-        test = str(rel_to_abs('cocks'))
-        with pytest.raises(TypeError, match = f'{test} does not match a valid file'):
+        test = str(rel_to_abs('test_file'))
+        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
             flist = fs.Filelist(sample_data)
             test_list = sample_data.copy()
             test_list.append(test)
@@ -141,7 +140,7 @@ class TestSub:
         assert set(flist3.data) == set()
 
     def test_filelist_sub_bad_string(self):
-        with pytest.raises(TypeError, match = 
+        with pytest.raises(IOError, match = 
                            'hello world! does not match a valid file or directory'):
             flist = fs.Filelist(sample_data)
             flist - 'hello world!'
@@ -158,10 +157,10 @@ class TestSub:
 
 
     def test_filelist_sub_bad_list(self):
-        test = str(rel_to_abs('cocks'))
+        test = str(rel_to_abs('test_file'))
         test_list = sample_data.copy()
         test_list.append(test)
-        with pytest.raises(TypeError, match = f'{test} does not match a valid file'):
+        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
             flist = fs.Filelist(sample_data)
             flist - test_list
 
@@ -194,9 +193,9 @@ class TestIadd:
         assert set(flist.data) == test_set
 
     def test_iadd_bad_string(self):
-        with pytest.raises(TypeError, match = 'cocks does not match a valid file'):
+        with pytest.raises(IOError, match = 'test_file does not match a valid file'):
             flist = fs.Filelist(sample_data)
-            flist += 'cocks'
+            flist += 'test_file'
 
     def test_iadd_Filelist(self):
         flist = fs.Filelist(sample_data)
@@ -215,8 +214,8 @@ class TestIadd:
         assert set(flist.data) == test_set
 
     def test_iadd_bad_list(self):
-        test = str(rel_to_abs('cocks'))
-        with pytest.raises(TypeError, match = f'{test} does not match a valid file'):
+        test = str(rel_to_abs('test_file'))
+        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
             flist = fs.Filelist(sample_data)
             test_list = sample_data.copy()
             test_list.append(test)
@@ -243,9 +242,9 @@ class TestIsub:
         assert flist.data == []
 
     def test_isub_bad_string(self):
-        with pytest.raises(TypeError, match = 'cocks does not match a valid file'):
+        with pytest.raises(IOError, match = 'test_file does not match a valid file'):
             flist = fs.Filelist(sample_data)
-            flist -= 'cocks'
+            flist -= 'test_file'
 
     def test_isub_Filelist(self):
         flist = fs.Filelist(sample_data)
@@ -264,8 +263,8 @@ class TestIsub:
         assert set(flist.data) == set(test_data[:2])
 
     def test_isub_bad_list(self):
-        test = str(rel_to_abs('cocks'))
-        with pytest.raises(TypeError, match = f'{test} does not match a valid file'):
+        test = str(rel_to_abs('test_file'))
+        with pytest.raises(IOError, match = f'{test} does not match a valid file'):
             flist = fs.Filelist(sample_data)
             test_list = sample_data.copy()
             test_list.append(test)
@@ -287,13 +286,13 @@ class TestSetCompars:
             flist.compare(test)
 
     def test_compare_error_FnF(self):
-        test = 'cocks'
+        test = 'test_file'
         test_list = sample_data2.copy()
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(IOError) as excinfo:
             test_list.append(test)
             flist = fs.Filelist(sample_data)
             flist.compare(test_list)
-            assert excinfo.msg == 'cocks does not match a valid file'
+            assert excinfo.msg == 'test_file does not match a valid file'
 
     def test_union(self):
         flist = fs.Filelist(sample_data)
@@ -308,6 +307,36 @@ class TestSetCompars:
     def test_intersection(self):
         flist = fs.Filelist(sample_data)
         assert flist.intersection(sample_data2) == {test_data[2]}
+
+    def test_isdisjoint_false(self):
+        flist = fs.Filelist(sample_data)
+        flist2 = fs.Filelist(sample_data2)
+        assert flist.isdisjoint(flist2) is False
+
+    def test_isdisjoint_true(self):
+        flist = fs.Filelist(sample_data)
+        assert flist.isdisjoint(sample_data2[1:]) is True
+
+    def test_issubset_false(self):
+        flist = fs.Filelist(sample_data)
+        assert flist.issubset(sample_data2) is False
+
+    def test_issubset_true(self):
+        flist = fs.Filelist(sample_data)
+        assert flist.issubset(test_set) is True
+
+    def test_issuperset_false(self):
+        flist = fs.Filelist(sample_data)
+        assert flist.issuperset(test_set) is False
+
+    def test_issuperset_true(self):
+        flist = fs.Filelist(test_set)
+        assert flist.issuperset(sample_data) is True
+
+    def test_symmetric_difference(self):
+        flist = fs.Filelist(sample_data)
+        assert flist.symmetric_difference(sample_data2) == {test_data[0], test_data[1],
+                                                            test_data2[1], test_data2[2]}
 
 
 class TestUtils:
