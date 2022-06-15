@@ -1,0 +1,3 @@
+/Users/simonburke/dev/data_science/filelister/tests/data/sample_01.txt
+/Users/simonburke/dev/data_science/filelister/tests/data/sample_02.txt
+/Users/simonburke/dev/data_science/filelister/tests/data/sample_03.txt

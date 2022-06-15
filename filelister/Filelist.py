@@ -10,23 +10,25 @@ class Filelist:
     """
     Main class contains most functions
     """
- 
+
     def __init__(self, data=None):
-        self.acceptable_types = [list, set, tuple, str, Filelist]
-        if data:
-            self.data = accept_input(data)
-        elif type(data) not in [list, set, tuple, None]:
-            raise TypeError(f'{type(data)} is an invalid input type.')
-        else:
-            self.data = None
+        try:
+            self.acceptable_types = [list, set, tuple, str, Filelist]
+            if data:
+                self.data = accept_input(data)
+            elif type(data) not in [list, set, tuple, None]:
+                raise TypeError(f'{type(data)} is an invalid input type.')
+            else:
+                self.data = None
+        except Exception as e:
+            raise e
 
     def __add__(self, other):
         try:
             if isinstance(other, Filelist):
                 return self.union(other)
-            else:
-                other_flist = Filelist(other)
-                return self.union(other_flist)
+            other_flist = Filelist(other)
+            return self.union(other_flist)
         except TypeError as te:
             raise te
 #            if type(other) not in self.acceptable_types:
@@ -51,8 +53,6 @@ class Filelist:
 #                    else:
 #                        raise TypeError(f'{obj} is not a valid filepath')
 #            return set1.union(set2)
-        except TypeError as te:
-            raise te from te
 
     def __iadd__(self, other):
         try:
@@ -87,17 +87,26 @@ class Filelist:
 
     def __sub__(self, other):
         set1 = set(self.data)
-        if isinstance(other, str):
-            set1.remove(other)
-            return set1
         try:
             if isinstance(other, Filelist):
-                set2 = set(other.data)
+                set2_list = other
             else:
-                set2 = set(other)
+                set2_list = Filelist(other)
+            set2 = set(set2_list.data)
             return set1.difference(set2)
         except TypeError as te:
-            raise TypeError(f'{type(other)} is an invalid input type') from te
+            raise te
+
+    def __isub__(self, other):
+        try:
+            if isinstance(other, Filelist):
+                self.data = list(self - other)
+            else:
+                other_flist = Filelist(other)
+                self.data = list(self - other_flist)
+            return self
+        except TypeError as te:
+            raise te
 
     def __str__(self):
         if self.data:
@@ -129,9 +138,10 @@ class Filelist:
         set_diff = {}
         try:
             if isinstance(other, Filelist):
-                set2 = set(other.data)
+                set2_list = other
             else:
-                set2 = set(other)
+                set2_list = Filelist(other)
+            set2 = set(set2_list.data)
             new_files = set1.difference(set2)
             removed_files = set2.difference(set1)
             set_diff['+'] = new_files
@@ -142,7 +152,7 @@ class Filelist:
                 print(colored(f'[-] {diff}', 'red'))
             return set_diff
         except TypeError as te:
-            raise TypeError(f'{type(other)} is an invalid input type') from te
+            raise te
 
     def union(self, other):
         """
@@ -151,12 +161,12 @@ class Filelist:
         set1 = set(self.data)
         try:
             if isinstance(other, Filelist):
-                set2 = set(other.data)
+                set2_list = other
             else:
-                set2 = set(other)
-            return set1.union(set2)
+                set2_list = Filelist(other)
+            return set1.union(set(set2_list.data))
         except TypeError as te:
-            raise TypeError(f'{type(other)} is an invalid input type') from te
+            raise te
 
     def difference(self, other):
         """
@@ -165,12 +175,12 @@ class Filelist:
         set1 = set(self.data)
         try:
             if isinstance(other, Filelist):
-                set2 = set(other.data)
+                set2_list = other
             else:
-                set2 = set(other)
-            return set1.difference(set2)
+                set2_list = Filelist(other)
+            return set1.difference(set(set2_list.data))
         except TypeError as te:
-            raise TypeError(f'{type(other)} is an invalid input type') from te
+            raise te
 
     def intersection(self, other):
         """
@@ -179,12 +189,12 @@ class Filelist:
         set1 = set(self.data)
         try:
             if isinstance(other, Filelist):
-                set2 = set(other.data)
+                set2 = other
             else:
                 set2 = set(other)
             return set1.intersection(set2)
         except TypeError as te:
-            raise TypeError(f'{type(other)} is an invalid input type') from te
+            raise te
 
     def sort(self):
         """
@@ -234,7 +244,7 @@ def create_from_list(data):
             return data
         return [relative_to_abs(fname) for fname in data]
     except TypeError as te:
-        raise te from te
+        raise te
 
 
 def create_from_set(data):
