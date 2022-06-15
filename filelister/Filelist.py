@@ -31,28 +31,6 @@ class Filelist:
             return self.union(other_flist)
         except TypeError as te:
             raise te
-#            if type(other) not in self.acceptable_types:
-#                raise TypeError(f'{type(other)} is an invalid input type.')
-#            set1 = set(self.data)
-#            if isinstance(other, str):
-#                if os.path.exists(other):
-#                    if os.path.isfile(other):
-#                        set1.add(str(os.path.abspath(other)))
-#                        return set1
-#                    if os.path.isdir(other):
-#                        other_list = Filelist(other)
-#                        return self.union(other_list)
-#                raise TypeError(f'{other} is not a valid filepath')
-#            if isinstance(other, Filelist):
-#                set2 = set(other.data)
-#            else:
-#                set2 = set()
-#                for obj in other:
-#                    if os.path.isfile(obj):
-#                        set2.add(os.path.abspath(obj))
-#                    else:
-#                        raise TypeError(f'{obj} is not a valid filepath')
-#            return set1.union(set2)
 
     def __iadd__(self, other):
         try:
@@ -64,26 +42,6 @@ class Filelist:
             return self
         except TypeError as te:
             raise te
-#        set1 = set(self.data)
-#        if isinstance(other, str):
-#            if os.path.exists(other):
-#                if os.path.isfile(other):
-#                    set1.add(str(os.path.abspath(other)))
-#                    self.data = list(set1)
-#                    return self
-#                if os.path.isdir(other):
-#                    other_list = Filelist(other)
-#                    self.data = list(self + other_list)
-#                    return self
-#        try:
-#            if isinstance(other, Filelist):
-#                set2 = set(other.data)
-#            else:
-#                set2 = set(other)
-#            self.data = list(set1.union(set2))
-#            return self
-#        except TypeError as te:
-#            raise TypeError(f'{type(other)} is an invalid input type') from te
 
     def __sub__(self, other):
         set1 = set(self.data)
@@ -110,7 +68,7 @@ class Filelist:
 
     def __str__(self):
         if self.data:
-            str_out = 'printing filelist...'
+            str_out = colored('printing filelist...', 'blue')
             for fname in self.data:
                 str_out += '\n' + fname
             return str_out
