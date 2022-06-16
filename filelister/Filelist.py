@@ -8,24 +8,19 @@ from termcolor import colored
 
 class Filelist:
     """
-    Main class contains most functions
+    Filelist class for creating, manipulating, comparing, and exporting filelists.
+
+    # TODO: Idea, make a view() that can be set to abs or relative
+    # _data for program always abs, view_data which can be abs or rel for programmer
+    # add list methods with maintained order (no cast to set)?
     """
 
-    def __init__(self, data=None, ext=[], exists=True):
-        self.ext = []
+    def __init__(self, data=None, allowed_exts=['.jpg', '.png', '.txt'], check_exists=True):
+        validate_user_inputs(data, allowed_exts, check_exists)
         try:
-            self.acceptable_types = [list, set, tuple, str,
-                                     Filelist, type(None)]
-            if type(data) not in self.acceptable_types:
-                raise TypeError(f'{type(data)} is an invalid input type.')
-            if data:
-                self._data = accept_input(data)
-            else:
-                self._data = []
-            if exists:
-                self.check_file_exists()
-            if ext:
-                self.check_extensions(ext)
+            self._allowed_exts = allowed_exts
+            self._check_exists = check_exists
+            self._data = validate_data(data, allowed_exts, check_exists)
         except Exception as e:
             raise e
 
@@ -38,49 +33,40 @@ class Filelist:
 
     @data.setter
     def data(self, data):
-        if data:
-            self._data = accept_input(data)
-        else:
-            self._data = []
+        self._data = validate_data(data, self._allowed_exts, self._check_exists)
 
     def __add__(self, other):
         try:
-            if isinstance(other, Filelist):
-                return Filelist(self.union(other))
-            other_flist = Filelist(other)
-            return Filelist(self.union(other_flist))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return Filelist(self.union(other))
         except Exception as e:
             raise e
 
     def __iadd__(self, other):
         try:
-            if isinstance(other, Filelist):
-                new_flist = self + other
-            else:
-                other_flist = Filelist(other)
-                new_flist = self + other_flist
-            self.data = new_flist.data
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            new_flist = self + other
+            self._data = new_flist.data
             return self
         except Exception as e:
             raise e
 
     def __sub__(self, other):
         try:
-            if isinstance(other, Filelist):
-                return Filelist(self.difference(other))
-            other_flist = Filelist(other)
-            return Filelist(self.difference(other_flist))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return Filelist(self.difference(other))
         except Exception as e:
             raise e
 
     def __isub__(self, other):
         try:
-            if isinstance(other, Filelist):
-                new_flist = self - other
-            else:
-                other_flist = Filelist(other)
-                new_flist = self - other_flist
-            self.data = new_flist.data
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            new_flist = self - other
+            self._data = new_flist.data
             return self
         except Exception as e:
             raise e
@@ -91,7 +77,10 @@ class Filelist:
             for fname in self.data:
                 str_out += '\n' + fname
             return str_out
-        return 'Filelist is empty'
+        return 'Empty Filelist'
+
+    def __sorted__(self):
+        return Filelist(self._data).sort()
 
     def save(self, outfile='filelist.txt', relative=False):
         """
@@ -105,30 +94,22 @@ class Filelist:
                 else:
                     path = os.path.abspath(fname)
                 f.write(str(path) + os.linesep)
-            print(f'filelist written to {outfile}')
+            print(colored(f'filelist written to {outfile}', 'green'))
 
     def compare(self, other):
         """
         Compares two filelists, returning the differences between the lists
         """
-        set1 = set(self.data)
         set_diff = {}
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            set2 = set(set2_list.data)
-            new_files = set1.difference(set2)
-            removed_files = set2.difference(set1)
-            if new_files:
-                set_diff['+'] = new_files
-            if removed_files:
-                set_diff['-'] = removed_files
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            set_diff['+'] = set(self.data).difference(set(other.data))
+            set_diff['-'] = set(other.data).difference(set(self.data))
             for diff in set_diff['+']:
-                print(colored(f'[+] {diff}', 'green'))
+                print(colored(f'[ + ] {diff}', 'green'))
             for diff in set_diff['-']:
-                print(colored(f'[-] {diff}', 'red'))
+                print(colored(f'[ - ] {diff}', 'red'))
             return set_diff
         except Exception as e:
             raise e
@@ -137,13 +118,10 @@ class Filelist:
         """
         Finds union of two filelists
         """
-        set1 = set(self.data)
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            return set1.union(set(set2_list.data))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return set(self.data).union(set(other.data))  # NOTE: order not guaranteed
         except Exception as e:
             raise e
 
@@ -151,13 +129,10 @@ class Filelist:
         """
         Finds difference between two filelists
         """
-        set1 = set(self.data)
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            return set1.difference(set(set2_list.data))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return set(self.data).difference(set(other.data))
         except Exception as e:
             raise e
 
@@ -165,13 +140,10 @@ class Filelist:
         """
         Finds intersection of two filelists
         """
-        set1 = set(self.data)
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            return set1.intersection(set(set2_list.data))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return set(self.data).intersection(set(other.data))
         except Exception as e:
             raise e
 
@@ -179,13 +151,10 @@ class Filelist:
         """
         Finds intersection of two filelists
         """
-        set1 = set(self.data)
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            return set1.isdisjoint(set(set2_list.data))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return set(self.data).isdisjoint(set(other.data))
         except Exception as e:
             raise e
 
@@ -193,13 +162,10 @@ class Filelist:
         """
         Finds intersection of two filelists
         """
-        set1 = set(self.data)
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            return set1.issubset(set(set2_list.data))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return set(self.data).issubset(set(other.data))
         except Exception as e:
             raise e
 
@@ -207,13 +173,10 @@ class Filelist:
         """
         Finds intersection of two filelists
         """
-        set1 = set(self.data)
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            return set1.issuperset(set(set2_list.data))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return set(self.data).issuperset(set(other.data))
         except Exception as e:
             raise e
 
@@ -221,13 +184,10 @@ class Filelist:
         """
         Finds intersection of two filelists
         """
-        set1 = set(self.data)
         try:
-            if isinstance(other, Filelist):
-                set2_list = other
-            else:
-                set2_list = Filelist(other)
-            return set1.symmetric_difference(set(set2_list.data))
+            if not isinstance(other, Filelist):
+                other = Filelist(other)
+            return set(self.data).symmetric_difference(set(other.data))
         except Exception as e:
             raise e
 
@@ -235,97 +195,60 @@ class Filelist:
         """
         Sorts a filelist
         """
-        self.data.sort()
-
-    def check_extensions(self, ext):
-        if not isinstance(ext, list):
-            raise TypeError('file extensions must be a list')
-        new_data = []
-        for filename in self.data:
-            if os.path.splitext(filename)[1] in ext:
-                new_data.append(filename)
-            else:
-                print(colored(f'{filename} is not an accepted file type',
-                              'red'))
-        self._data = new_data
-
-    def check_file_exists(self):
-        new_data = []
-        for filename in self.data:
-            if os.path.exists(filename):
-                new_data.append(filename)
-            else:
-                print(colored(f'{filename} does not exist', 'red'))
-        self._data = new_data
+        self._data.sort()
 
 
-def relative_to_abs(path):
-    """
-    Convert a relative path from current working
-    directory to an absolute path
-    """
-    return os.path.abspath(os.path.join(os.getcwd(), path))
+def validate_user_inputs(data, exts, exists):
+    accepted_data_types = [list, set, tuple, str, Filelist, type(None)]  # remove None?
+    if type(data) not in accepted_data_types:
+        raise TypeError(f'Invalid input type: {type(data)}')
+    if not isinstance(exts, list):
+        raise TypeError('Invalid input type: allowed_exts must be of type list')
+    # check file exts passed
+    if not isinstance(exists, bool):
+        raise TypeError('Invalid input type: check_exists must be of type bool')
 
 
-def accept_input(data):
-    """
-    Handles acceptable input types
-    """
+def validate_data(data, exts, exists):
+    try:
+        data = format_input(data)
+        if not data:
+            return data
+        is_abs = data[0][0] == '/'
+        valid_data = []
+        for filename in data:
+            if exists:
+                if not os.path.isfile(filename):
+                    raise FileNotFoundError(f'File Not Found: {filename}')
+            if os.path.splitext(filename)[1] not in exts:
+                raise TypeError(f'Bad file type: {filename}')
+            if not is_abs:
+                filename = relative_to_abs(filename)
+            valid_data.append(filename)
+        return valid_data
+    except Exception as e:
+        raise e
+
+
+def format_input(data):
+    if isinstance(data, type(None)):  # empty Filelist?
+        return []
     if isinstance(data, list):
-        return create_from_list(data)
-    if isinstance(data, set):
-        return create_from_set(data)
-    if isinstance(data, tuple):
-        return create_from_tuple(data)
+        return data
+    if isinstance(data, (set, tuple)):
+        return list(data)
     if isinstance(data, Filelist):
         return data.data
     if isinstance(data, str):
-        if os.path.isdir(data):
-            return create_from_dir(data)
         if os.path.isfile(data):
             return [os.path.abspath(data)]
-        raise IOError(f'{data} does not match a valid file or directory')
-    raise TypeError(f'{type(data)} is an invalid input type')
+        if os.path.isdir(data):
+            return read_dir(data)
+        raise FileNotFoundError(f'File Not Found: {data}')
+    raise TypeError(f'Invalid input type: {type(data)}')
 
 
-def create_from_list(data):
-    """
-    Handles list inputs for Filelist
-    """
-    try:
-        if data[0][0] == '/':
-            return data
-        return [relative_to_abs(fname) for fname in data]
-    except Exception as e:
-        raise e
-
-
-def create_from_set(data):
-    """
-    Handles set input for Filelist
-    """
-    try:
-        data = list(data)
-        if data[0][0] == '/':
-            return data
-        return [relative_to_abs(fname) for fname in data]
-    except Exception as e:
-        raise e
-
-
-def create_from_tuple(data):
-    """
-    Handles tuple inputs for Filelist
-    """
-    try:
-        if data[0][0] == '/':
-            return list(data)
-        return [relative_to_abs(fname) for fname in data]
-    except Exception as e:
-        raise e
-
-
-def create_from_dir(data):
+def read_dir(data):
     """
     Handles directory inputs for Filelist
     """
@@ -333,13 +256,25 @@ def create_from_dir(data):
         data_out = []
         for path, _, files in os.walk(data):
             for filename in files:
-                fpath = os.path.abspath(os.path.join(path, filename))
-                data_out.append(str(fpath))
+                data_out.append(
+                    os.path.abspath(os.path.join(path, filename))
+                )
         return data_out
     except Exception as e:
         raise e
 
 
-def write_filelist(dirname, outfile, relative=True, ext=[], exists=True):
-    flist = Filelist(dirname, ext=ext, exists=exists)
+def relative_to_abs(path):
+    """
+    Convert a relative path from cwd to an absolute path
+    """
+    return os.path.abspath(os.path.join(os.getcwd(), path))
+
+
+def write_filelist(dirname,
+                   outfile,
+                   relative=True,
+                   allowed_exts=['.jpg', '.png', '.txt'],
+                   check_exists=True):
+    flist = Filelist(dirname, allowed_exts=allowed_exts, check_exists=check_exists)
     flist.save(outfile, relative)

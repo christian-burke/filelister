@@ -7,24 +7,20 @@ import os
 import filelister as fs
 
 
-def read_filelist(infile, ext=[], exists=False):
+def read_filelist(infile, check_exists=True):
     """
     reads a filelist from a text file and stores it in Filelist class
     """
     try:
         check_infile(infile)
+        fpaths = []
+        exts = set()
         with open(infile, encoding='utf-8') as f:
-            first_byte = f.read(1)
-            f.seek(0,0)
-            if first_byte == '/':
-                fpaths = [fpath.rstrip() for fpath in f]
-            else:
-                # working directory of the infile
-                fpaths = [os.path.abspath(os.path.join(os.path.dirname(infile),
-                                                       fpath.rstrip()))
-                    for fpath in f]
-            check_duplicate_path(fpaths)
-            return fs.Filelist(fpaths, ext=ext, exists=exists)
+            for fname in f:
+                exts.add(os.path.splitext(fname)[1].rstrip())
+                fpaths.append(os.path.abspath(os.path.join(os.path.dirname(infile),
+                                                           fname.rstrip())))
+            return fs.Filelist(fpaths, allowed_exts=list(exts), check_exists=check_exists)
     except Exception as e:
         raise e
 
@@ -48,7 +44,3 @@ def check_infile(infile):
     ext = os.path.splitext(infile)[1]
     if ext != '.txt':
         raise TypeError(f'{ext} is not an accepted file extension')
-
-if __name__ == "__main__":
-    flist = read_filelist('../tests/filelists/filelist.csv')
-    print(flist)

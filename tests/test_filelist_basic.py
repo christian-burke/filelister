@@ -90,8 +90,8 @@ class TestAdd:
         assert set(flist3.data) == test_set
 
     def test_filelist_add_bad_string(self):
-        with pytest.raises(OSError, match =
-                           'hello world! does not match a valid file or directory'):
+        with pytest.raises(FileNotFoundError, match =
+                           'File Not Found: hello world!'):
             flist = fs.Filelist(sample_data)
             flist + 'hello world!'
 
@@ -111,12 +111,13 @@ class TestAdd:
         flist = fs.Filelist(sample_data)
         test_list = sample_data.copy()
         test_list.append(test)
-        flist2 = flist + test_list
-        assert set(flist2.data) == set(sample_data)
+        with pytest.raises(FileNotFoundError, match = f'File Not Found: {test}'):
+            flist2 = flist + test_list
+            assert set(flist2.data) == set(sample_data)
 
     def test_add_invalid(self):
         test = 5
-        with pytest.raises(TypeError, match = f'{type(test)} is an invalid input type'):
+        with pytest.raises(TypeError, match = f'Invalid input type: {type(test)}'):
             flist = fs.Filelist(sample_data)
             flist2 = flist + test
 
@@ -139,8 +140,8 @@ class TestSub:
         assert set(flist3.data) == set()
 
     def test_filelist_sub_bad_string(self):
-        with pytest.raises(IOError, match = 
-                           'hello world! does not match a valid file or directory'):
+        with pytest.raises(FileNotFoundError, match = 
+                           'File Not Found: hello world!'):
             flist = fs.Filelist(sample_data)
             flist - 'hello world!'
 
@@ -160,13 +161,13 @@ class TestSub:
         test_list = sample_data.copy()
         test_list.append(test)
         flist = fs.Filelist(sample_data)
-        flist2 = flist - test_list
-        assert set(flist2.data) == set()
+        with pytest.raises(FileNotFoundError, match=f'File Not Found: {test}'):
+            flist2 = flist - test_list
 
 
     def test_sub_invalid(self):
         test = 5
-        with pytest.raises(TypeError, match = f'{type(test)} is an invalid input type'):
+        with pytest.raises(TypeError, match = f'Invalid input type: {type(test)}'):
             flist = fs.Filelist(sample_data)
             flist - test
 
@@ -192,7 +193,7 @@ class TestIadd:
         assert set(flist.data) == test_set
 
     def test_iadd_bad_string(self):
-        with pytest.raises(OSError, match = f'test_file does not match a valid file or directory'):
+        with pytest.raises(FileNotFoundError, match = f'File Not Found: test_file'):
             flist = fs.Filelist(sample_data)
             flist += 'test_file'
 
@@ -217,8 +218,8 @@ class TestIadd:
         flist = fs.Filelist(sample_data)
         test_list = sample_data.copy()
         test_list.append(test)
-        flist += test_list
-        assert set(flist.data) == set(sample_data)
+        with pytest.raises(FileNotFoundError, match = f'File Not Found: {test}'):
+            flist += test_list
 
 
 class TestIsub:
@@ -241,7 +242,7 @@ class TestIsub:
         assert flist.data == []
 
     def test_isub_bad_string(self):
-        with pytest.raises(IOError, match = 'test_file does not match a valid file'):
+        with pytest.raises(FileNotFoundError, match = 'File Not Found: test_file'):
             flist = fs.Filelist(sample_data)
             flist -= 'test_file'
 
@@ -266,8 +267,8 @@ class TestIsub:
         flist = fs.Filelist(sample_data)
         test_list = sample_data.copy()
         test_list.append(test)
-        flist -= test_list
-        assert set(flist.data) == set()
+        with pytest.raises(FileNotFoundError, match = f'File Not Found: {test}'):
+            flist -= test_list
 
 class TestSetCompars:
 
@@ -280,18 +281,17 @@ class TestSetCompars:
 
     def test_compare_error_invalid_input(self):
         test = 5
-        with pytest.raises(TypeError, match=f'{type(test)} is an invalid input type'):
+        with pytest.raises(TypeError, match=f'Invalid input type: {type(test)}'):
             flist = fs.Filelist(sample_data)
             flist.compare(test)
 
-    def test_compare_error_FnF(self):
+    def test_compare_error_fnf(self):
         test = 'test_file'
-        test_list = sample_data2.copy()
-        test_list.append(test)
-        flist = fs.Filelist(sample_data)
-        diff = flist.compare(test_list)
-        assert diff['+'] == {test_data[0], test_data[1]}
-        assert diff['-'] == {test_data2[1], test_data2[2]}
+        with pytest.raises(FileNotFoundError, match=f'File Not Found: {test}'):
+            test_list = sample_data2.copy()
+            test_list.append(test)
+            flist = fs.Filelist(sample_data)
+            flist.compare(test_list)
 
     def test_union(self):
         flist = fs.Filelist(sample_data)
