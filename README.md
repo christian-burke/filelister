@@ -18,7 +18,9 @@ tests/data/sample04.txt
 tests/data/sample05.txt
 ```
 The filelister will handle both relative and absolute paths in any accepted data type.
-### Saving a Filelist
+
+### Using a Filelist
+#### Saving a Filelist
 Filelists can be written to local files in two ways, the primary way being the `Filelist.save()` function. This function takes two parameters, `outfile`, the path to the location in which to store the filelist, and `relative=False`, an optional value to determine whether to write an absolute or relative Filelist, which is useful when working in shared directories. A relative filelist will always store filepaths relative to the location of the outfile.
 ```python
 my_filelist.save('tests/filelists/my_filelist.txt', relative=True)
@@ -29,10 +31,12 @@ The other way to write a filelist is using ```fs.write_filelist(data, outfile, a
 fs.write_filelist('tests/data', 'tests/filelists/my_filelist.txt')
 filelist written to tests/filelists/my_filelist.txt
 ```
-
-### Using a Filelist
+#### Accessing Filelist Data
+Filelist data can be accessed directly by calling ```my_filelist.data```. This will return a list of all files in the filelist.
+```print(my_filelist.data())
+['tests/data/sample_01.txt', 'tests/data/sample_02.txt']
 #### Merging filelists
-Two filelists can be merged with the + operator.
+Two filelists can be merged with the + operator. It is worth noting that when adding filelists, order is not necessarily maintained. To remedy this, a filelist can be sorted with the ```my_filelist.sort()``` function, or by calling ```sorted(my_filelist)```
 ```python
 new_filelist = my_filelist1 + my_filelist2
 print(new_filelist)
