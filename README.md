@@ -106,9 +106,9 @@ tests/data/sample_05.txt
 ```python
 my_filelist1.compare(my_filelist2)
 ```
-```console
-[ + ] tests/data/sample_01.txt
-[ - ] tests/data/sample_03.txt
-[ - ] tests/data/sample_04.txt
-[ - ] tests/data/sample_05.txt
+```diff
++ tests/data/sample_01.txt
+- tests/data/sample_03.txt
+- tests/data/sample_04.txt
+- tests/data/sample_05.txt
 ```
