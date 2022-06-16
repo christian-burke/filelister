@@ -66,8 +66,9 @@ print(new_filelist)
 tests/data/sample_05.txt
 ```
 ```my_filelist1.compare(my_filelist2)
-<span style="color:green">[ + ] tests/data/sample_01.txt</span>
-<span style="color:red">[ - ] tests/data/sample_03.txt
+[ + ] tests/data/sample_01.txt
+[ - ] tests/data/sample_03.txt
 [ - ] tests/data/sample_04.txt
-[ - ] tests/data/sample_05.txt</span>
+[ - ] tests/data/sample_05.txt
+```
 
