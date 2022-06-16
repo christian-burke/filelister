@@ -24,7 +24,7 @@ Filelists can be written to local files in two ways, the primary way being the `
 my_filelist.save('tests/filelists/my_filelist.txt', relative=True)
 filelist written to tests/filelists/my_filelist.txt
 ```
-The other way to write a filelist is using `fs.write_filelist(data, outfile, allowed_exts=['.jpg', '.png', '.txt'], relative=True)```, a shortcut for quickly writing filelists directly from the data. 
+The other way to write a filelist is using ```fs.write_filelist(data, outfile, allowed_exts=['.jpg', '.png', '.txt'], relative=True)```, a shortcut for quickly writing filelists directly from the data. 
 ```
 fs.write_filelist('tests/data', 'tests/filelists/my_filelist.txt')
 filelist written to tests/filelists/my_filelist.txt
