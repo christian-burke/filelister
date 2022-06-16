@@ -96,6 +96,15 @@ class Filelist:
                 f.write(str(path) + os.linesep)
             print(colored(f'filelist written to {outfile}', 'green'))
 
+    def view(self, relative=True):
+        """Prints data"""
+        if relative:
+            read_data = [abs_to_rel(path) for path in self.data]
+        else:
+            read_data = self.data
+        for path in read_data:
+            print(path)
+
     def compare(self, other):
         """
         Compares two filelists, returning the differences between the lists
@@ -270,6 +279,11 @@ def relative_to_abs(path):
     """
     return os.path.abspath(os.path.join(os.getcwd(), path))
 
+def abs_to_rel(path):
+    """
+    Convert an absolute path to a relative path
+    """
+    return os.path.relpath(path, start=os.getcwd())
 
 def write_filelist(dirname,
                    outfile,

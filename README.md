@@ -8,9 +8,9 @@ There are two main ways to create a filelist. The first is by passing a data arg
 ```python
 my_filelist = fs.Filelist(['tests/data/sample_01.txt', 'tests/data/sample_02.txt'])
 ```
-The other option is to read from an existing filelist. This takes in the same parameters and returns a Filelist object.
+The other option is to read from an existing filelist. This takes in the path to a filelist and `check_exists=False` and returns a Filelist object. It will accept any file extensions contained in the list.
 ```python
-my_filelist2 = fs.read_filelist('tests/filelists/rel_filelist.txt', allowed_exts=['.txt'], check_exists=False )
+my_filelist2 = fs.read_filelist('tests/filelists/rel_filelist.txt', check_exists=False )
 print(my_filelist)
 tests/data/sample_02.txt
 tests/data/sample_03.txt
@@ -35,6 +35,7 @@ filelist written to tests/filelists/my_filelist.txt
 Filelist data can be accessed directly by calling ```my_filelist.data```. This will return a list of all files in the filelist.
 ```print(my_filelist.data())
 ['tests/data/sample_01.txt', 'tests/data/sample_02.txt']
+Filelist data can also be viewed using `my_filelist.view()`. This function has one optional argument, ```relative=True``` which allows the user to view the files as their paths relative to the cwd.
 #### Merging filelists
 Two filelists can be merged with the + operator. It is worth noting that when adding filelists, order is not necessarily maintained. To remedy this, a filelist can be sorted with the ```my_filelist.sort()``` function, or by calling ```sorted(my_filelist)```
 ```python
