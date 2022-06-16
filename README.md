@@ -18,7 +18,7 @@ tests/data/sample04.txt
 tests/data/sample05.txt
 ```
 The filelister will handle both relative and absolute paths in any accepted data type.
-###Saving a Filelist
+### Saving a Filelist
 Filelists can be written to local files in two ways, the primary way being the `Filelist.save()` function. This function takes two parameters, `outfile`, the path to the location in which to store the filelist, and `relative=False`, an optional value to determine whether to write an absolute or relative Filelist, which is useful when working in shared directories. A relative filelist will always store filepaths relative to the location of the outfile.
 ```
 my_filelist.save('tests/filelists/my_filelist.txt', relative=True)
