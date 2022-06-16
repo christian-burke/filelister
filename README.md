@@ -12,6 +12,8 @@ The other option is to read from an existing filelist. This takes in the path to
 ```python
 my_filelist2 = fs.read_filelist('tests/filelists/rel_filelist.txt', check_exists=False )
 print(my_filelist)
+```
+```console
 tests/data/sample_02.txt
 tests/data/sample_03.txt
 tests/data/sample04.txt
@@ -24,11 +26,15 @@ The filelister will handle both relative and absolute paths in any accepted data
 Filelists can be written to local files in two ways, the primary way being the `Filelist.save()` function. This function takes two parameters, `outfile`, the path to the location in which to store the filelist, and `relative=False`, an optional value to determine whether to write an absolute or relative Filelist, which is useful when working in shared directories. A relative filelist will always store filepaths relative to the location of the outfile.
 ```python
 my_filelist.save('tests/filelists/my_filelist.txt', relative=True)
+```
+```console
 filelist written to tests/filelists/my_filelist.txt
 ```
 The other way to write a filelist is using ```fs.write_filelist(data, outfile, allowed_exts=['.jpg', '.png', '.txt'], relative=True)```, a shortcut for quickly writing filelists directly from the data. 
 ```python
 fs.write_filelist('tests/data', 'tests/filelists/my_filelist.txt')
+```
+```console
 filelist written to tests/filelists/my_filelist.txt
 ```
 #### Accessing Filelist Data
