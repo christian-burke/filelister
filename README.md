@@ -10,7 +10,7 @@ my_filelist = fs.Filelist(['tests/data/sample_01.txt', 'tests/data/sample_02.txt
 ```
 The other option is to read from an existing filelist. This takes in the same parameters and returns a Filelist object.
 ```python
-my_filelist2 = fs.read_filelist(`tests/filelists/rel_filelist.txt', allowed_exts=['.txt'], check_exists=False )
+my_filelist2 = fs.read_filelist('tests/filelists/rel_filelist.txt', allowed_exts=['.txt'], check_exists=False )
 print(my_filelist)
 tests/data/sample_02.txt
 tests/data/sample_03.txt
