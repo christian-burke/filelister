@@ -1,8 +1,31 @@
 # Filelister
-## Usage
+
+Filelister is a Python package that makes working with filelists (yes, lists of files) easy.
+
 ```python
 import filelister as fs
+
+my_filelist = fs.Filelist('path/to/files')
+
+my_filelist.save('filelist.txt')
 ```
+
+---
+
+## Installation
+
+### pip (local)
+You can install this package via pip locally. `cd` to the root directory of Filelister and run the following command:
+```bash
+pip install -e .
+```
+### pip (pypi)
+Coming soon
+### anaconda
+Coming soon
+
+## Usage
+
 ### Creating a filelist
 There are two main ways to create a filelist. The first is by passing a data argument to the Filelist class. This function has 3 arguments, `data`, `allowed_exts`, and `check_exists`. Data is the data contained in the Filelist, which can be a list, set, tuple, another filelist object, or a path to a single file or a directory. The `allowed_exts` argument is optional and allows the user to select specific file extensions that will be read into a flist. It defaults to allowing .jpg, .png, and .txt files. This is especially helpful when reading an existing filelist. `check_exists` checks that each filepath in the data corresponds to an existing file on the user's system.
 ```python
