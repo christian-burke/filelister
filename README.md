@@ -39,14 +39,18 @@ filelist written to tests/filelists/my_filelist.txt
 ```
 #### Accessing Filelist Data
 Filelist data can be accessed directly by calling ```my_filelist.data```. This will return a list of all files in the filelist.
-```print(my_filelist.data())
+```python
+print(my_filelist.data())
 ['tests/data/sample_01.txt', 'tests/data/sample_02.txt']
-Filelist data can also be viewed using `my_filelist.view()`. This function has one optional argument, ```relative=True``` which allows the user to view the files as their paths relative to the cwd.
+```
+Filelist data can also be viewed using ```my_filelist.view()```. This function has one optional argument, ```relative=True``` which allows the user to view the files as their paths relative to the cwd.
 #### Merging filelists
 Two filelists can be merged with the + operator. It is worth noting that when adding filelists, order is not necessarily maintained. To remedy this, a filelist can be sorted with the ```my_filelist.sort()``` function, or by calling ```sorted(my_filelist)```
 ```python
 new_filelist = my_filelist1 + my_filelist2
 print(new_filelist)
+```
+```console
 tests/data/sample_01.txt
 tests/data/sample_02.txt
 tests/data/sample_03.txt
@@ -56,6 +60,8 @@ tests/data/sample_05.txt
 ```python
 my_filelist += my_filelist2
 print(my_filelist)
+```
+```console
 tests/data/sample_01.txt
 tests/data/sample_02.txt
 tests/data/sample_03.txt
@@ -66,11 +72,15 @@ Similarly, the - operator will remove the contents of one filelist from another.
 ```python
 new_filelist = my_filelist1 - my_filelist2
 print(new_filelist)
+```
+```console
 tests/data/sample_01.txt
 ```
 ```python
 my_filelist -= my_filelist2
 print(my_filelist)
+```
+```console
 tests/data/sample_01.txt
 ```
 #### Set comparisons
@@ -80,6 +90,8 @@ my_filelist1 = (['tests/data/sample_01.txt', 'tests/data/sample_02.txt'])
 my_filelist2 = fs.read_filelists('tests/fileists/rel_filelist.txt')
 new_filelist = my_filelist1.union(my_filelist2)
 print(new_filelist)
+```
+```console
 tests/data/sample_01.txt
 ...
 tests/data/sample_05.txt
@@ -87,13 +99,16 @@ tests/data/sample_05.txt
 ```python
 new_filelist = my_filelist2.intersection(['tests/data/sample_01.txt', 'tests/data/sample_05.txt'])
 print(new_filelist)
+```
+```console
 tests/data/sample_05.txt
 ```
 ```python
 my_filelist1.compare(my_filelist2)
+```
+```console
 [ + ] tests/data/sample_01.txt
 [ - ] tests/data/sample_03.txt
 [ - ] tests/data/sample_04.txt
 [ - ] tests/data/sample_05.txt
 ```
-
