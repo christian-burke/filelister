@@ -1,14 +1,23 @@
 # Filelister
-Filelister is a Python package that makes working with filelists (yes, lists of files) easy.
 
-## Basic Usage
+### Filelister is a Python package that makes working with filelists (yes, lists of files) easy.
 
 ```python
 import filelister as fs
 ```
 
-### Creating a Filelist
-You can create a Filelist by passing the constructor a list, set, tuple, path to directory or file, or another Filelist object.
+### Contents
+- [Basic Usage](#basic-usage)
+- [Installation](#installation)
+- [Contributors](#contributors)
+- [API](#API)
+
+# Basic Usage
+
+## Creating a Filelist
+
+### From Data
+You can create a Filelist object from a list, set, tuple, Filelist object, or path to directory.
 
 ```python
 my_filelist = fs.Filelist(['../file_01.jpg', '../file_02.jpg'])
@@ -16,22 +25,32 @@ my_filelist = fs.Filelist(['../file_01.jpg', '../file_02.jpg'])
 my_other_filelist = fs.Filelist('path/to/directory')
 ```
 
-You can also create a Filelist by reading from an existing filelist.
+### From System Files
+You can also create a Filelist object by reading from a filelist saved on your system.
 
 ```python
 my_filelist = fs.read_filelist('path/to/filelist.txt')
 ```
 
-### Filelist Operations
-Filelister supports the arithmetic operators `+`, `-`, `+=`, and `-=` as well as the set operations `union`, `difference`, `intersection`, and `symmetric_difference`. Note that set operations do not guarantee order.
+## Filelist Operations
+
+### Arithmetic Operations
+Filelister supports the arithmetic operations `+`, `-`, `+=`, and `-=`.
 
 ```python
 addition_filelist = my_filelist + my_other_filelist
+```
 
+### Set Operations
+Filelister supports the set operations `union`, `difference`, `intersection`, `symmetric_difference`. Note that set operations do not guarantee order.
+
+```python
 intersection_filelist = my_filelist.intersection(my_other_filelist)
 ```
 
-Filelister also has its own custom `compare` method, which returns a dictionary of the set differences and prints them to the console.
+### Custom Operations
+
+Filelister also supports its own custom `compare` method, which returns a dictionary of the set differences and prints them to the console.
 
 ```python
 my_filelist1.compare(my_filelist2)
@@ -43,15 +62,15 @@ my_filelist1.compare(my_filelist2)
 - tests/data/sample_05.txt
 ```
 
-### Saving a Filelist
+## Saving a Filelist
 To save a filelist, simply call `save` on the Filelist object. You can pass a custom `outpath` filename and set `relative=True` to save a filelist with relative paths. Note that the paths will be relative to the data depending on the directory the filelist is saved to.
 
 ```python
 my_filelist.save('filelists/my_filelist.txt', relative=True)
 ```
-## Installation
+# Installation
 
-### pip (local)
+## pip (local)
 You can install this package locally via Github and pip.
 
 ```bash
@@ -59,22 +78,22 @@ git clone https://github.com/burkecp/filelister.git
 cd filelister
 pip install -e .
 ```
-### pip (PyPi)
+## pip (PyPi)
 *Coming soon*
 
-### Anaconda
+## Anaconda
 *Coming soon*
 
-## Credits
+# Contributors
 
-### Authors
-Simon Burke
-Christian Burke
-
-### Contributors
+## Authors
+Simon Burke  
+Christian Burke  
 Refik Anadol Studio
 
-## Full Documentation
+# API
+
+## In Progress
 
 ### Creating a filelist
 There are two main ways to create a filelist. The first is by passing a data argument to the Filelist class. This function has 3 arguments, `data`, `allowed_exts`, and `check_exists`. Data is the data contained in the Filelist, which can be a list, set, tuple, another filelist object, or a path to a single file or a directory. The `allowed_exts` argument is optional and allows the user to select specific file extensions that will be read into a flist. It defaults to allowing .jpg, .png, and .txt files. This is especially helpful when reading an existing filelist. `check_exists` checks that each filepath in the data corresponds to an existing file on the user's system.
