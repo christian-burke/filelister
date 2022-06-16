@@ -42,7 +42,7 @@ addition_filelist = my_filelist + my_other_filelist
 ```
 
 ### Set Operations
-Filelister supports the set operations `union`, `difference`, `intersection`, `symmetric_difference`. Note that set operations do not guarantee order.
+Filelister supports the set operations `union`, `difference`, `intersection`, and `symmetric_difference`. Note that set operations do not guarantee order.
 
 ```python
 intersection_filelist = my_filelist.intersection(my_other_filelist)
