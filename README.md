@@ -1,8 +1,6 @@
 # Filelister
 Filelister is a Python package that makes working with filelists (yes, lists of files) easy.
 
----
-
 ## Basic Usage
 
 ```python
@@ -51,9 +49,6 @@ To save a filelist, simply call `save` on the Filelist object. You can pass a cu
 ```python
 my_filelist.save('filelists/my_filelist.txt', relative=True)
 ```
-
----
-
 ## Installation
 
 ### pip (local)
@@ -70,14 +65,14 @@ pip install -e .
 ### Anaconda
 *Coming soon*
 
----
+## Credits
 
-## Authors
+### Authors
+Simon Burke
+Christian Burke
 
-Simon Burke: @simon-burke
-Christian Burke: @burkecp
-
----
+### Contributors
+Refik Anadol Studio
 
 ## Full Documentation
 
