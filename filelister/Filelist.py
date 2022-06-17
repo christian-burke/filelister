@@ -82,6 +82,14 @@ class Filelist:
     def __sorted__(self):
         return Filelist(self._data).sort()
 
+    def contains(self, filename):
+        """Returns True if the filelist contains a given filename."""
+        if not isinstance(filename, str):
+            raise TypeError('Invalid input: filename must be a string')
+        if filename[0] != '/':
+            filename = relative_to_abs(filename)
+        return filename in set(self._data)
+
     def save(self, outfile='filelist.txt', relative=False):
         """
         Writes filelist to a text file
