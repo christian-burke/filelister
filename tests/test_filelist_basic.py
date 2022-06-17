@@ -368,8 +368,28 @@ class TestUtils:
         flist = fs.read_filelist(test_path)
         assert flist.data == test_data
 
-
     def test_read_filelist_rel(self):
         test_path = os.path.join(os.getcwd(), os.path.dirname(__file__),'filelists/test_filelist_rel.txt')
         flist = fs.read_filelist(test_path)
         assert flist.data == test_data
+
+    def test_contains_abs(self):
+        flist = fs.Filelist(test_set)
+        assert flist.contains(sample_data[0]) is True
+
+    def test_not_contains_abs(self):
+        flist = fs.Filelist(test_set)
+        assert flist.contains('/not_a_file') is False
+
+    def test_contains_rel(self):
+        flist = fs.Filelist(test_set)
+        assert flist.contains(rel_sample[0]) is True
+
+    def test_not_contains_rel(self):
+        flist = fs.Filelist(test_set)
+        assert flist.contains('not_a_file') is False
+
+    def test_contains_throws_typeerror(self):
+        flist = fs.Filelist(test_set)
+        with pytest.raises(TypeError, match = 'Invalid input: filename must be a string'):
+            flist.contains(1234)
