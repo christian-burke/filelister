@@ -5,24 +5,49 @@ functions to read filelists from text file and store in Filelist class
 
 import os
 import filelister as fs
+import zlib
 
 
-def read_filelist(infile, check_exists=True):
-    """
-    reads a filelist from a text file and stores it in Filelist class
-    """
+def read_filelist(infile, check_exists=True, compressed=False):
     try:
         check_infile(infile)
+        if compressed:
+            flist = read_compressed(infile)
+        else:
+            flist = read_uncompressed(infile)
         fpaths = []
         exts = set()
-        with open(infile, encoding='utf-8') as f:
-            for fname in f:
-                exts.add(os.path.splitext(fname)[1].rstrip())
-                fpaths.append(os.path.abspath(os.path.join(os.path.dirname(infile),
-                                                           fname.rstrip())))
-            return fs.Filelist(fpaths, allowed_exts=list(exts), check_exists=check_exists)
+        for fname in flist:
+            exts.add(os.path.splitext(fname)[1].rstrip())
+            fpaths.append(os.path.abspath(os.path.join(os.path.dirname(infile),
+                                                       fname.rstrip())))
+        return fs.Filelist(fpaths, allowed_exts=list(exts),
+                           check_exists=check_exists)
     except Exception as e:
         raise e
+
+
+def read_compressed(infile):
+
+    """
+    reads a compressed filelist
+    """
+    with open(infile, 'rb') as f:
+        zdict = f.readline().strip()
+        data = f.read()
+    obj = zlib.decompressobj(zdict=zdict)
+    obj.decompress(data)
+
+    data = data.decode('utf-8').split(',')
+    return data
+
+
+def read_uncompressed(infile):
+    """
+    reads an uncompressed filelist
+    """
+    with open(infile, encoding='utf-8') as f:
+        return [line.rstrip() for line in f]
 
 
 def check_duplicate_path(fpaths):
@@ -32,6 +57,7 @@ def check_duplicate_path(fpaths):
     fpath_set = set(fpaths)
     if len(fpath_set) != len(fpaths):
         raise ValueError('filelist contains a duplicate file')
+
 
 def check_infile(infile):
     """

@@ -90,7 +90,7 @@ class Filelist:
             filename = relative_to_abs(filename)
         return filename in set(self._data)
 
-    def save(self, outfile='filelist.txt', relative=False):
+    def save(self, outfile='filelist.txt', relative=False, compressed=False):
         """
         Writes filelist to a text file
         """
@@ -300,3 +300,15 @@ def write_filelist(dirname,
                    check_exists=True):
     flist = Filelist(dirname, allowed_exts=allowed_exts, check_exists=check_exists)
     flist.save(outfile, relative)
+
+def compress(data, path):
+    """
+    compresses a filelist to be written to a text file
+    """
+    zdict = os.path.commonprefix(data).encode('utf-8')
+    obj = zlib.compressobj(level=1, memLevel=9, zdict=zdict)
+    data = ','.join(data).encode('utf-8')
+    data_zip = obj.compress(data)
+    data_zip += obj.flush()
+    data_zip = zdict + b'\n' + data_zip
+    return data_zip

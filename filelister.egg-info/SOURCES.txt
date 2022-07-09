@@ -2,6 +2,7 @@ README.md
 setup.py
 filelister/Filelist.py
 filelister/__init__.py
+filelister/compression.py
 filelister/read_filelist.py
 filelister.egg-info/PKG-INFO
 filelister.egg-info/SOURCES.txt
