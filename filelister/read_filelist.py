@@ -36,7 +36,8 @@ def read_compressed(infile):
         zdict = f.readline().strip()
         data = f.read()
     obj = zlib.decompressobj(zdict=zdict)
-    obj.decompress(data)
+    data = obj.decompress(data)
+    data += obj.flush()
 
     data = data.decode('utf-8').split(',')
     return data

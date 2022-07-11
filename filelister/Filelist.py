@@ -1,7 +1,7 @@
 """
 Class build to handle Filelists
 """
-
+import zlib
 import os
 from termcolor import colored
 
@@ -15,7 +15,8 @@ class Filelist:
     # add list methods with maintained order (no cast to set)?
     """
 
-    def __init__(self, data=None, allowed_exts=['.jpg', '.png', '.txt'], check_exists=True):
+    def __init__(self, data=None, allowed_exts=['.jpg', '.png', '.txt'],
+                 check_exists=True):
         validate_user_inputs(data, allowed_exts, check_exists)
         try:
             self._allowed_exts = allowed_exts
@@ -33,7 +34,8 @@ class Filelist:
 
     @data.setter
     def data(self, data):
-        self._data = validate_data(data, self._allowed_exts, self._check_exists)
+        self._data = validate_data(data, self._allowed_exts,
+                                   self._check_exists)
 
     def __add__(self, other):
         try:
@@ -92,17 +94,22 @@ class Filelist:
 
     def save(self, outfile='filelist.txt', relative=False, compressed=False):
         """
-        Writes filelist to a text file
+        Writes a filelist to a txt file
         """
-        with open(outfile, 'w', encoding='utf-8') as f:
-            for fname in self.data:
-                if relative:
-                    path = os.path.relpath(fname,
-                                           start=os.path.dirname(outfile))
-                else:
-                    path = os.path.abspath(fname)
-                f.write(str(path) + os.linesep)
-            print(colored(f'filelist written to {outfile}', 'green'))
+        if relative:
+            data = [os.path.relpath(fname, start=os.path.dirname(outfile))
+                    for fname in self.data]
+        else:
+            data = [os.path.abspath(fname) for fname in self.data]
+        if compressed:
+            with open(outfile, 'wb') as f:
+                data = compress(self.data)
+                f.write(data)
+                print(colored(f'filelist written to {outfile}', 'green'))
+        else:
+            with open(outfile, 'w', encoding='utf-8') as f:
+                [f.write(str(fname) + os.linesep) for fname in data]
+                print(colored(f'filelist written to {outfile}', 'green'))
 
     def view(self, relative=True):
         """Prints data"""
@@ -138,7 +145,8 @@ class Filelist:
         try:
             if not isinstance(other, Filelist):
                 other = Filelist(other)
-            return set(self.data).union(set(other.data))  # NOTE: order not guaranteed
+            return set(self.data).union(set(other.data))
+        # NOTE: order not guaranteed
         except Exception as e:
             raise e
 
@@ -216,14 +224,17 @@ class Filelist:
 
 
 def validate_user_inputs(data, exts, exists):
-    accepted_data_types = [list, set, tuple, str, Filelist, type(None)]  # remove None?
+    accepted_data_types = [list, set, tuple, str, Filelist, type(None)]
+    # remove None?
     if type(data) not in accepted_data_types:
         raise TypeError(f'Invalid input type: {type(data)}')
     if not isinstance(exts, list):
-        raise TypeError('Invalid input type: allowed_exts must be of type list')
+        raise TypeError(
+            'Invalid input type: allowed_exts must be of type list')
     # check file exts passed
     if not isinstance(exists, bool):
-        raise TypeError('Invalid input type: check_exists must be of type bool')
+        raise TypeError(
+            'Invalid input type: check_exists must be of type bool')
 
 
 def validate_data(data, exts, exists):
@@ -287,21 +298,25 @@ def relative_to_abs(path):
     """
     return os.path.abspath(os.path.join(os.getcwd(), path))
 
+
 def abs_to_rel(path):
     """
     Convert an absolute path to a relative path
     """
     return os.path.relpath(path, start=os.getcwd())
 
+
 def write_filelist(dirname,
                    outfile,
                    relative=True,
                    allowed_exts=['.jpg', '.png', '.txt'],
                    check_exists=True):
-    flist = Filelist(dirname, allowed_exts=allowed_exts, check_exists=check_exists)
+    flist = Filelist(dirname, allowed_exts=allowed_exts,
+                     check_exists=check_exists)
     flist.save(outfile, relative)
 
-def compress(data, path):
+
+def compress(data):
     """
     compresses a filelist to be written to a text file
     """

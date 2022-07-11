@@ -38,7 +38,7 @@ class CreateFromType:
         test = 'test_file'
         test_list = sample_data.copy()
         test_list.append(test)
-        fs.Filelist(test_list)
+        flist = fs.Filelist(test_list)
         assert set(flist.data) == set(test_data)
 
     def test_filelist_create_from_abs_set(self):
@@ -393,3 +393,32 @@ class TestUtils:
         flist = fs.Filelist(test_set)
         with pytest.raises(TypeError, match = 'Invalid input: filename must be a string'):
             flist.contains(1234)
+
+
+class TestCompression:
+    """
+    tests for reading and writing compressed filelists
+    """
+    def test_save_abs_compressed(self):
+        """
+        tests ability to save a compressed absolute filelist
+        """
+        test_path = os.path.join(os.getcwd(), os.path.dirname(__file__),
+                                 'filelists/test_compressed_abs.txt')
+        flist = fs.Filelist(sample_data)
+        flist.save(test_path, relative=False, compressed=True)
+        compressed_size = os.stat(test_path).st_size
+        uncompressed_size = os.stat(os.path.join(os.getcwd(),
+                                                 os.path.dirname(__file__),
+                                                 "filelists/test_filelist_abs.txt")).st_size
+        assert compressed_size < uncompressed_size
+
+    def test_read_abs_compressed(self):
+        """
+        tests ability to read compressed absolute filelist
+        """
+        test_path = os.path.join(os.getcwd(), os.path.dirname(__file__),
+                                 'filelists/test_compressed_abs.txt')
+        flist = fs.read_filelist(test_path, check_exists=True, compressed=True)
+        assert flist.data == test_data
+
