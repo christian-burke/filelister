@@ -404,7 +404,7 @@ class TestCompression:
         tests ability to save a compressed absolute filelist
         """
         test_path = os.path.join(os.getcwd(), os.path.dirname(__file__),
-                                 'filelists/test_compressed_abs.txt')
+                                 'filelists/compressed_abs.txt')
         flist = fs.Filelist(sample_data)
         flist.save(test_path, relative=False, compressed=True)
         compressed_size = os.stat(test_path).st_size
@@ -418,7 +418,30 @@ class TestCompression:
         tests ability to read compressed absolute filelist
         """
         test_path = os.path.join(os.getcwd(), os.path.dirname(__file__),
-                                 'filelists/test_compressed_abs.txt')
+                                 'filelists/compressed_abs.txt')
         flist = fs.read_filelist(test_path, check_exists=True, compressed=True)
         assert flist.data == test_data
+
+    def test_save_rel_compressed(self):
+        """
+        tests ability to save a compressed absolute filelist
+        """
+        test_path = os.path.join(os.getcwd(), os.path.dirname(__file__),
+                                 'filelists/compressed_rel.txt')
+        flist = fs.Filelist(test_set)
+        flist.save(test_path, relative=True, compressed=True)
+        compressed_size = os.stat(test_path).st_size
+        uncompressed_size = os.stat(os.path.join(os.getcwd(),
+                                                 os.path.dirname(__file__),
+                                                 "filelists/full_filelist_rel.txt")).st_size
+        assert compressed_size < uncompressed_size
+
+    def test_read_rel_compressed(self):
+        """
+        tests ability to read compressed absolute filelist
+        """
+        test_path = os.path.join(os.getcwd(), os.path.dirname(__file__),
+                                 'filelists/compressed_rel.txt')
+        flist = fs.read_filelist(test_path, check_exists=True, compressed=True)
+        assert set(flist.data) == test_set
 
