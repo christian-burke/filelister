@@ -20,6 +20,7 @@ rel_sample2 = [os.path.relpath(path, start = os.getcwd()) for path in sample_dat
 test_data2 = [os.path.abspath(test) for test in sample_data2]
 test_data = [os.path.abspath(test) for test in sample_data]
 test_set = set(test_data).union(set(test_data2))
+test_list = test_data + test_data2[1:]
 
 
 class CreateFromType:
@@ -68,26 +69,26 @@ class TestAdd:
         flist = fs.Filelist(sample_data)
         flist2 = fs.Filelist(sample_data2)
         flist3 = flist + flist2
-        assert set(flist3.data) == test_set
+        assert flist3.data == sample_data + sample_data2
 
     def test_filelist_add_abs_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist + str(rel_to_abs('data/sample_04.txt'))
-        set1 = set(test_data)
-        set1.add(os.path.abspath(rel_to_abs('data/sample_04.txt')))
-        assert set(flist3.data) == set1
+        check_list = test_data.copy()
+        check_list.append(rel_to_abs('data/sample_04.txt'))
+        assert flist3.data == check_list
 
     def test_filelist_add_rel_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist + str(os.path.relpath(rel_to_abs('data/sample_04.txt'), os.getcwd()))
-        set1 = set(test_data)
-        set1.add(os.path.abspath(rel_to_abs('data/sample_04.txt')))
-        assert set(flist3.data) == set1
+        check_list = test_data.copy()
+        check_list.append(rel_to_abs('data/sample_04.txt'))
+        assert flist3.data == check_list
 
     def test_add_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist + str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert set(flist3.data) == test_set
+        assert sorted(flist3.data) == sorted(sample_data + test_list)
 
     def test_filelist_add_bad_string(self):
         with pytest.raises(FileNotFoundError, match =
@@ -98,12 +99,12 @@ class TestAdd:
     def test_filelist_add_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist + sample_data2
-        assert set(flist2.data) == test_set
+        assert flist2.data == sample_data + sample_data2
 
     def test_filelist_add_rel_list(self):
         flist = fs.Filelist(rel_sample)
         flist2 = flist + rel_sample2
-        assert set(flist2.data) == test_set
+        assert flist2.data == sample_data + sample_data2
 
 
     def test_filelist_add_bad_list(self):
@@ -127,17 +128,17 @@ class TestSub:
     def test_sub_abs_string(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist - str(sample_data[2])
-        assert set(flist2.data) == set(sample_data[:2])
+        assert flist2.data == sample_data[:2]
 
     def test_sub_rel_string(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist - str(rel_sample[2])
-        assert set(flist2.data) == set(test_data[:2])
+        assert flist2.data == test_data[:2]
 
     def test_sub_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist - str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert set(flist3.data) == set()
+        assert flist3.data == []
 
     def test_filelist_sub_bad_string(self):
         with pytest.raises(FileNotFoundError, match = 
@@ -148,12 +149,12 @@ class TestSub:
     def test_filelist_sub_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist - sample_data2
-        assert set(flist2.data) == set(test_data[:2])
+        assert flist2.data == test_data[:2]
 
     def test_filelist_sub_rel_list(self):
         flist = fs.Filelist(rel_sample)
         flist2 = flist - rel_sample2
-        assert set(flist2.data) == set(test_data[:2])
+        assert flist2.data == test_data[:2]
 
 
     def test_filelist_sub_bad_list(self):
@@ -176,21 +177,21 @@ class TestIadd:
     def test_iadd_abs_string(self):
         flist = fs.Filelist(sample_data)
         flist += str(rel_to_abs('data/sample_04.txt'))
-        set1 = set(test_data)
-        set1.add(os.path.abspath(rel_to_abs('data/sample_04.txt')))
-        assert set(flist.data) == set1
+        test_list = sample_data.copy()
+        test_list.append(rel_to_abs('data/sample_04.txt'))
+        assert flist.data == test_list
 
     def test_iadd_rel_string(self):
         flist = fs.Filelist(sample_data)
         flist += str(os.path.relpath(rel_to_abs('data/sample_04.txt'), start=os.getcwd()))
-        set1 = set(test_data)
-        set1.add(os.path.abspath(rel_to_abs('data/sample_04.txt')))
-        assert set(flist.data) == set1
+        test_list = sample_data.copy()
+        test_list.append(rel_to_abs('data/sample_04.txt'))
+        assert flist.data == test_list
 
     def test_iadd_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist += str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert set(flist.data) == test_set
+        assert sorted(flist.data) == sorted(sample_data + test_list)
 
     def test_iadd_bad_string(self):
         with pytest.raises(FileNotFoundError, match = f'File Not Found: test_file'):
@@ -201,17 +202,17 @@ class TestIadd:
         flist = fs.Filelist(sample_data)
         flist2 = fs.Filelist(sample_data2)
         flist += flist2
-        assert set(flist.data) == test_set
+        assert flist.data == sample_data + sample_data2
 
     def test_iadd_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist += sample_data2
-        assert set(flist.data) == test_set
+        assert flist.data == sample_data + sample_data2
 
     def test_iadd_rel_list(self):
         flist = fs.Filelist(sample_data)
         flist += rel_sample2
-        assert set(flist.data) == test_set
+        assert flist.data == sample_data + sample_data2
 
     def test_iadd_bad_list(self):
         test = str(rel_to_abs('test_file'))
@@ -227,14 +228,12 @@ class TestIsub:
     def test_isub_abs_string(self):
         flist = fs.Filelist(sample_data)
         flist -= str(rel_to_abs('data/sample_03.txt'))
-        set1 = set(test_data[:2])
-        assert set(flist.data) == set1
+        assert flist.data == sample_data[:2]
 
     def test_isub_rel_string(self):
         flist = fs.Filelist(sample_data)
         flist -= str(os.path.relpath(rel_to_abs('data/sample_03.txt'), start=os.getcwd()))
-        set1 = set(test_data[:2])
-        assert set(flist.data) == set1
+        assert flist.data == sample_data[:2]
 
     def test_isub_dir_string(self):
         flist = fs.Filelist(sample_data)
@@ -250,17 +249,17 @@ class TestIsub:
         flist = fs.Filelist(sample_data)
         flist2 = fs.Filelist(sample_data2)
         flist -= flist2
-        assert set(flist.data) == set(test_data[:2])
+        assert flist.data == test_data[:2]
 
     def test_isub_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist -= sample_data2
-        assert set(flist.data) == set(test_data[:2])
+        assert flist.data == test_data[:2]
 
     def test_isub_rel_list(self):
         flist = fs.Filelist(sample_data)
         flist -= rel_sample2
-        assert set(flist.data) == set(test_data[:2])
+        assert flist.data == test_data[:2]
 
     def test_isub_bad_list(self):
         test = str(rel_to_abs('test_file'))

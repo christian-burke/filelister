@@ -15,13 +15,16 @@ class Filelist:
     # add list methods with maintained order (no cast to set)?
     """
 
-    def __init__(self, data=None, allowed_exts=['.jpg', '.png', '.txt'],
+    def __init__(self, data=None, allowed_exts=None,
                  check_exists=True):
+        if allowed_exts is None:
+            allowed_exts = ['.jpg', '.png', '.txt']
         validate_user_inputs(data, allowed_exts, check_exists)
         try:
             self._allowed_exts = allowed_exts
             self._check_exists = check_exists
             self._data = validate_data(data, allowed_exts, check_exists)
+            self._lookup_dict = create_dict(self._data)
         except Exception as e:
             raise e
 
@@ -37,11 +40,22 @@ class Filelist:
         self._data = validate_data(data, self._allowed_exts,
                                    self._check_exists)
 
-    def __add__(self, other):
+    @property
+    def lookup_dict(self):
+        """
+        lookup_table property and setter method
+        """
+        return self._lookup_dict
+
+    @lookup_dict.setter
+    def lookup_dict(self, data):
+        self._lookup_dict = create_dict(data)
+
+    def __add__(self, other):  # to dupe or not to dupe?
         try:
             if not isinstance(other, Filelist):
                 other = Filelist(other)
-            return Filelist(self.union(other))
+            return Filelist(self._data + other._data)
         except Exception as e:
             raise e
 
@@ -51,6 +65,7 @@ class Filelist:
                 other = Filelist(other)
             new_flist = self + other
             self._data = new_flist.data
+            self._lookup_dict = new_flist._lookup_dict
             return self
         except Exception as e:
             raise e
@@ -59,7 +74,7 @@ class Filelist:
         try:
             if not isinstance(other, Filelist):
                 other = Filelist(other)
-            return Filelist(self.difference(other))
+            return Filelist([fname for fname in self._data if fname not in other._data])
         except Exception as e:
             raise e
 
@@ -69,6 +84,7 @@ class Filelist:
                 other = Filelist(other)
             new_flist = self - other
             self._data = new_flist.data
+            self._lookup_dict = new_flist._lookup_dict
             return self
         except Exception as e:
             raise e
@@ -85,12 +101,32 @@ class Filelist:
         return Filelist(self._data).sort()
 
     def contains(self, filename):
-        """Returns True if the filelist contains a given filename."""
+        """
+        Returns True if the filelist contains a given filename.
+        """
         if not isinstance(filename, str):
             raise TypeError('Invalid input: filename must be a string')
         if filename[0] != '/':
             filename = relative_to_abs(filename)
-        return filename in set(self._data)
+        try:
+            self._lookup_dict[filename]
+            return True
+        except KeyError:
+            return False
+
+    def find(self, filename):
+        """
+        Returns indices of filename in filelist
+        """
+        if not isinstance(filename, str):
+            raise TypeError('Invalid input: filename must be a string')
+        if filename[0] != '/':
+            filename = relative_to_abs(filename)
+        try:
+            return self._lookup_dict[filename]
+        except KeyError:
+            return []
+
 
     def save(self, outfile='filelist.txt', relative=False, compressed=False):
         """
@@ -221,9 +257,20 @@ class Filelist:
         Sorts a filelist
         """
         self._data.sort()
+        self._lookup_dict = self._data
+
+    def remove_duplicates(self):
+        """
+        Removes duplicates from a filelist
+        """
+        self._data = [fname for (_, fname) in enumerate(self.data) if fname not in self._data[:_]]
+        self.lookup_dict = self._data
 
 
 def validate_user_inputs(data, exts, exists):
+    """
+    User input validation
+    """
     accepted_data_types = [list, set, tuple, str, Filelist, type(None)]
     # remove None?
     if type(data) not in accepted_data_types:
@@ -238,6 +285,9 @@ def validate_user_inputs(data, exts, exists):
 
 
 def validate_data(data, exts, exists):
+    """
+    converts data to acceptable list format
+    """
     try:
         data = format_input(data)
         if not data:
@@ -259,6 +309,9 @@ def validate_data(data, exts, exists):
 
 
 def format_input(data):
+    """
+    formats user input into acceptable filelist format
+    """
     if isinstance(data, type(None)):  # empty Filelist?
         return []
     if isinstance(data, list):
@@ -309,12 +362,30 @@ def abs_to_rel(path):
 def write_filelist(dirname,
                    outfile,
                    relative=True,
-                   allowed_exts=['.jpg', '.png', '.txt'],
+                   compressed=False,
+                   allowed_exts=None,
                    check_exists=True):
+    """
+    writes a filelist for a given directory
+    """
+    if allowed_exts is None:
+        allowed_exts = ['.jpg', '.png', '.txt']
     flist = Filelist(dirname, allowed_exts=allowed_exts,
                      check_exists=check_exists)
-    flist.save(outfile, relative)
+    flist.save(outfile, relative=relative, compressed=compressed)
 
+
+def create_dict(data):
+    """
+    creates lookup_dict from list
+    """
+    lookup_dict = {}
+    for (idx, fname) in enumerate(data):
+        if fname not in lookup_dict:
+            lookup_dict[fname] = [idx]
+        else:
+            lookup_dict[fname].append(idx)
+    return lookup_dict
 
 def compress(data):
     """
