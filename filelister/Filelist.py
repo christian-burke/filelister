@@ -17,14 +17,14 @@ class Filelist:
     """
 
     def __init__(self, data=None, allowed_exts=None,
-                 check_exists=True):
+                 check_exists=False, check_exts=False):
         if allowed_exts is None:
             allowed_exts = ['.jpg', '.png', '.txt']
         validate_user_inputs(data, allowed_exts, check_exists)
         try:
             self._allowed_exts = allowed_exts
             self._check_exists = check_exists
-            self._data = validate_data(data, allowed_exts, check_exists)
+            self._data = validate_data(data, allowed_exts, check_exists, check_exts)
         except Exception as e:
             raise e
 
@@ -246,7 +246,7 @@ def validate_user_inputs(data, exts, exists):
             'Invalid input type: check_exists must be of type bool')
 
 
-def validate_data(data, exts, exists):
+def validate_data(data, exts, exists, check_exts):
     """
     converts data to acceptable list format
     """
@@ -256,12 +256,13 @@ def validate_data(data, exts, exists):
             return data
 
         valid_data = []
-        for _, filename in enumerate(data):
+        for filename in data:
             if exists:
                 if not os.path.isfile(filename):
                     raise FileNotFoundError(f'File Not Found: {filename}')
-            if os.path.splitext(filename)[1] not in exts:
-                raise TypeError(f'Bad file type: {filename}')
+            if check_exts:
+                if os.path.splitext(filename)[1] not in exts:
+                    raise TypeError(f'Bad file type: {filename}')
             is_abs = filename[0] == '/'
             if not is_abs:
                 filename = relative_to_abs(filename)
