@@ -35,7 +35,7 @@ def benchmark_read_uncompressed(test_file, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        fs.read_filelist(test_file, compressed=False, check_exts=False, check_exists=False)
+        fs.read_filelist(test_file, compressed=False, check_exists=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -90,7 +90,7 @@ def get_compressed_metrics(path):
     with open(path, 'rb') as f:
         raw_data = f.read()
         size = sys.getsizeof(raw_data)
-    flist = fs.read_filelist(path, check_exists=False, check_exts=False, compressed=True)
+    flist = fs.read_filelist(path, check_exists=False, compressed=True)
     lines = len(flist.data)
     return size, lines
 
@@ -108,7 +108,7 @@ def benchmark_read_compressed(test_file, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        fs.read_filelist(test_file, check_exts=False, check_exists=False, compressed=True)
+        fs.read_filelist(test_file, check_exists=False, compressed=True)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     TEST_FILE = os.path.join(os.getcwd(), os.path.dirname(__file__), 'filelists/national_parks.txt')
     compressed_file = os.path.splitext(TEST_FILE)[0] + '_compressed.zz'
     flist = fs.read_filelist(TEST_FILE, compressed=False,
-                             check_exists=False, check_exts=False)
+                             check_exists=False)
     flist.save(compressed_file, compressed=True)
 
 
@@ -142,3 +142,5 @@ if __name__ == '__main__':
     benchmark_read_compressed(compressed_file, NUM_ITERATIONS)
     compressed_flist = fs.read_filelist(compressed_file, compressed=True)
     print(flist.compare(compressed_flist))
+    print(len(compressed_flist.data))
+    print(len(flist.data))

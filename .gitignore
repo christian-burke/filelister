@@ -2,6 +2,5 @@ __pycache__
 *.swp
 *.DS_Store
 Thumbs.db
-tests/filelists/*.txt
-tests/filelists/*.zz
-
+*.txt
+*.zz

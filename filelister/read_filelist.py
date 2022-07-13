@@ -4,31 +4,44 @@ functions to read filelists from text file and store in Filelist class
 
 import time
 import os
-import filelister as fs
+from .Filelist import Filelist, validate_data
 import zlib
+from itertools import repeat
+from multiprocessing import cpu_count
+from multiprocessing import Pool
 
 
-def read_filelist(infile, check_exists=False, compressed=False, check_exts=False):
+
+def process_data(dirname, fname, relative=False):
+    # if check_exts:
+        # exts.add(os.path.splitext(fname)[1].rstrip())
+    #if relative:
+
+        return os.path.abspath(os.path.join(dirname, fname.rstrip()))
+
+
+
+
+def read_filelist(infile, check_exists=False, compressed=False, allowed_exts=None):
     try:
         check_infile(infile)
         if compressed:
             flist = read_compressed(infile)
         else:
             flist = read_uncompressed(infile)
-        fpaths = []
-        exts = set()
-        for fname in flist:
-            if check_exts:
-                exts.add(os.path.splitext(fname)[1].rstrip())
-            fpaths.append(os.path.abspath(os.path.join(os.path.dirname(infile),
-                                                       fname.rstrip())))
-        exts = list(exts)
-        if not list(exts):
-            exts = None
-        return fs.Filelist(fpaths, allowed_exts=exts,
+        dirname = os.path.abspath(os.path.dirname(infile))
+
+        with Pool(cpu_count()) as pool:
+            data = pool.starmap(process_data, zip(repeat(dirname), flist))
+        data = validate_data(data, allowed_exts, check_exists, False)
+        out = Filelist(None, allowed_exts=allowed_exts,
                            check_exists=check_exists)
+        out._data = data
+        return out
     except Exception as e:
         raise e
+
+
 
 
 def read_compressed(infile):
