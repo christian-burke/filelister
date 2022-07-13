@@ -3,6 +3,7 @@ Class build to handle Filelists
 """
 import zlib
 import os
+from collections import OrderedDict
 from termcolor import colored
 
 
@@ -24,7 +25,6 @@ class Filelist:
             self._allowed_exts = allowed_exts
             self._check_exists = check_exists
             self._data = validate_data(data, allowed_exts, check_exists)
-            self._lookup_dict = create_dict(self._data)
         except Exception as e:
             raise e
 
@@ -40,17 +40,6 @@ class Filelist:
         self._data = validate_data(data, self._allowed_exts,
                                    self._check_exists)
 
-    @property
-    def lookup_dict(self):
-        """
-        lookup_table property and setter method
-        """
-        return self._lookup_dict
-
-    @lookup_dict.setter
-    def lookup_dict(self, data):
-        self._lookup_dict = create_dict(data)
-
     def __add__(self, other):  # to dupe or not to dupe?
         try:
             if not isinstance(other, Filelist):
@@ -65,7 +54,6 @@ class Filelist:
                 other = Filelist(other)
             new_flist = self + other
             self._data = new_flist.data
-            self._lookup_dict = new_flist._lookup_dict
             return self
         except Exception as e:
             raise e
@@ -84,7 +72,6 @@ class Filelist:
                 other = Filelist(other)
             new_flist = self - other
             self._data = new_flist.data
-            self._lookup_dict = new_flist._lookup_dict
             return self
         except Exception as e:
             raise e
@@ -108,24 +95,7 @@ class Filelist:
             raise TypeError('Invalid input: filename must be a string')
         if filename[0] != '/':
             filename = relative_to_abs(filename)
-        try:
-            self._lookup_dict[filename]
-            return True
-        except KeyError:
-            return False
-
-    def find(self, filename):
-        """
-        Returns indices of filename in filelist
-        """
-        if not isinstance(filename, str):
-            raise TypeError('Invalid input: filename must be a string')
-        if filename[0] != '/':
-            filename = relative_to_abs(filename)
-        try:
-            return self._lookup_dict[filename]
-        except KeyError:
-            return []
+        return filename in self.data
 
 
     def save(self, outfile='filelist.txt', relative=False, compressed=False):
@@ -136,16 +106,16 @@ class Filelist:
             data = [os.path.relpath(fname, start=os.path.dirname(outfile))
                     for fname in self.data]
         else:
-            data = [os.path.abspath(fname) for fname in self.data]
+            data = self.data
         if compressed:
             with open(outfile, 'wb') as f:
                 data = compress(self.data)
                 f.write(data)
-                print(colored(f'filelist written to {outfile}', 'green'))
+                # print(colored(f'filelist written to {outfile}', 'green'))
         else:
             with open(outfile, 'w', encoding='utf-8') as f:
-                [f.write(str(fname) + os.linesep) for fname in data]
-                print(colored(f'filelist written to {outfile}', 'green'))
+                f.write(os.linesep.join(data))
+                # print(colored(f'filelist written to {outfile}', 'green'))
 
     def view(self, relative=True):
         """Prints data"""
@@ -257,14 +227,6 @@ class Filelist:
         Sorts a filelist
         """
         self._data.sort()
-        self._lookup_dict = self._data
-
-    def remove_duplicates(self):
-        """
-        Removes duplicates from a filelist
-        """
-        self._data = [fname for (_, fname) in enumerate(self.data) if fname not in self._data[:_]]
-        self.lookup_dict = self._data
 
 
 def validate_user_inputs(data, exts, exists):
@@ -292,18 +254,19 @@ def validate_data(data, exts, exists):
         data = format_input(data)
         if not data:
             return data
-        is_abs = data[0][0] == '/'
+
         valid_data = []
-        for filename in data:
+        for _, filename in enumerate(data):
             if exists:
                 if not os.path.isfile(filename):
                     raise FileNotFoundError(f'File Not Found: {filename}')
             if os.path.splitext(filename)[1] not in exts:
                 raise TypeError(f'Bad file type: {filename}')
+            is_abs = filename[0] == '/'
             if not is_abs:
                 filename = relative_to_abs(filename)
             valid_data.append(filename)
-        return valid_data
+        return list(OrderedDict.fromkeys(valid_data))
     except Exception as e:
         raise e
 
@@ -338,8 +301,7 @@ def read_dir(data):
         for path, _, files in os.walk(data):
             for filename in files:
                 data_out.append(
-                    os.path.abspath(os.path.join(path, filename))
-                )
+                    os.path.abspath(os.path.join(path, filename)))
         return data_out
     except Exception as e:
         raise e
@@ -374,18 +336,6 @@ def write_filelist(dirname,
                      check_exists=check_exists)
     flist.save(outfile, relative=relative, compressed=compressed)
 
-
-def create_dict(data):
-    """
-    creates lookup_dict from list
-    """
-    lookup_dict = {}
-    for (idx, fname) in enumerate(data):
-        if fname not in lookup_dict:
-            lookup_dict[fname] = [idx]
-        else:
-            lookup_dict[fname].append(idx)
-    return lookup_dict
 
 def compress(data):
     """

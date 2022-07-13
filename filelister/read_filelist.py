@@ -8,7 +8,7 @@ import filelister as fs
 import zlib
 
 
-def read_filelist(infile, check_exists=True, compressed=False):
+def read_filelist(infile, check_exists=True, compressed=False, check_exts=False):
     try:
         check_infile(infile)
         if compressed:
@@ -48,7 +48,7 @@ def read_uncompressed(infile):
     reads an uncompressed filelist
     """
     with open(infile, encoding='utf-8') as f:
-        return [line.rstrip() for line in f]
+        return f.read().split('\n')
 
 
 def check_duplicate_path(fpaths):
@@ -69,5 +69,5 @@ def check_infile(infile):
     if not os.path.isfile(infile):
         raise TypeError(f'{infile} is not a .txt file')
     ext = os.path.splitext(infile)[1]
-    if ext != '.txt':
+    if ext not in ('.txt', '.zz'):
         raise TypeError(f'{ext} is not an accepted file extension')

@@ -69,7 +69,7 @@ class TestAdd:
         flist = fs.Filelist(sample_data)
         flist2 = fs.Filelist(sample_data2)
         flist3 = flist + flist2
-        assert flist3.data == sample_data + sample_data2
+        assert flist3.data == test_list
 
     def test_filelist_add_abs_string(self):
         flist = fs.Filelist(sample_data)
@@ -88,7 +88,7 @@ class TestAdd:
     def test_add_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist3 = flist + str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert sorted(flist3.data) == sorted(sample_data + test_list)
+        assert flist3.data == test_list
 
     def test_filelist_add_bad_string(self):
         with pytest.raises(FileNotFoundError, match =
@@ -99,12 +99,12 @@ class TestAdd:
     def test_filelist_add_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist2 = flist + sample_data2
-        assert flist2.data == sample_data + sample_data2
+        assert flist2.data == test_list
 
     def test_filelist_add_rel_list(self):
         flist = fs.Filelist(rel_sample)
         flist2 = flist + rel_sample2
-        assert flist2.data == sample_data + sample_data2
+        assert flist2.data == test_list
 
 
     def test_filelist_add_bad_list(self):
@@ -191,7 +191,7 @@ class TestIadd:
     def test_iadd_dir_string(self):
         flist = fs.Filelist(sample_data)
         flist += str(os.path.relpath(rel_to_abs('data'), start=os.getcwd()))
-        assert sorted(flist.data) == sorted(sample_data + test_list)
+        assert flist.data == test_list
 
     def test_iadd_bad_string(self):
         with pytest.raises(FileNotFoundError, match = f'File Not Found: test_file'):
@@ -202,17 +202,17 @@ class TestIadd:
         flist = fs.Filelist(sample_data)
         flist2 = fs.Filelist(sample_data2)
         flist += flist2
-        assert flist.data == sample_data + sample_data2
+        assert flist.data == test_list
 
     def test_iadd_abs_list(self):
         flist = fs.Filelist(sample_data)
         flist += sample_data2
-        assert flist.data == sample_data + sample_data2
+        assert flist.data == test_list
 
     def test_iadd_rel_list(self):
         flist = fs.Filelist(sample_data)
         flist += rel_sample2
-        assert flist.data == sample_data + sample_data2
+        assert flist.data == test_list
 
     def test_iadd_bad_list(self):
         test = str(rel_to_abs('test_file'))
