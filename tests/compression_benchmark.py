@@ -73,7 +73,7 @@ def benchmark_write_compressed(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save('compressed_write.zz')
+        test_list.save('compressed_write.zz', compressed=True)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -121,7 +121,7 @@ def benchmark_read_compressed(test_file, iterations):
 
 if __name__ == '__main__':
     NUM_ITERATIONS = 25
-    TEST_FILE = os.path.join(os.getcwd(), os.path.dirname(__file__), 'filelists/full_filelist_rel.txt')
+    TEST_FILE = os.path.join(os.getcwd(), os.path.dirname(__file__), 'filelists/uncompressed_filelist.txt')
     compressed_file = os.path.splitext(TEST_FILE)[0] + '_compressed.zz'
     flist = fs.read_filelist(TEST_FILE, compressed=False,
                              check_exists=False, check_exts=False)
@@ -140,3 +140,5 @@ if __name__ == '__main__':
     benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
     print('\n\n\n\n')
     benchmark_read_compressed(compressed_file, NUM_ITERATIONS)
+    compressed_flist = fs.read_filelist(compressed_file, compressed=True)
+    print(flist.compare(compressed_flist))

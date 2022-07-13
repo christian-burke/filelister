@@ -2,13 +2,13 @@
 functions to read filelists from text file and store in Filelist class
 """
 
-
+import time
 import os
 import filelister as fs
 import zlib
 
 
-def read_filelist(infile, check_exists=True, compressed=False, check_exts=False):
+def read_filelist(infile, check_exists=False, compressed=False, check_exts=False):
     try:
         check_infile(infile)
         if compressed:
@@ -18,10 +18,14 @@ def read_filelist(infile, check_exists=True, compressed=False, check_exts=False)
         fpaths = []
         exts = set()
         for fname in flist:
-            exts.add(os.path.splitext(fname)[1].rstrip())
+            if check_exts:
+                exts.add(os.path.splitext(fname)[1].rstrip())
             fpaths.append(os.path.abspath(os.path.join(os.path.dirname(infile),
                                                        fname.rstrip())))
-        return fs.Filelist(fpaths, allowed_exts=list(exts),
+        exts = list(exts)
+        if not list(exts):
+            exts = None
+        return fs.Filelist(fpaths, allowed_exts=exts,
                            check_exists=check_exists)
     except Exception as e:
         raise e
@@ -48,7 +52,7 @@ def read_uncompressed(infile):
     reads an uncompressed filelist
     """
     with open(infile, encoding='utf-8') as f:
-        return f.read().split('\n')
+        return f.read().rstrip().split('\n')
 
 
 def check_duplicate_path(fpaths):
