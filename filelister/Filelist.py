@@ -6,7 +6,6 @@ import os
 from collections import OrderedDict
 from termcolor import colored
 
-
 class Filelist:
     """
     Filelist class for creating, manipulating, comparing, and exporting filelists.
@@ -17,13 +16,14 @@ class Filelist:
     """
 
     def __init__(self, data=None, allowed_exts=None,
-                 check_exists=False, check_exts=False):
+                 check_exists=True, check_exts=True):
         if allowed_exts is None:
             allowed_exts = ['.jpg', '.png', '.txt']
         validate_user_inputs(data, allowed_exts, check_exists)
         try:
             self._allowed_exts = allowed_exts
             self._check_exists = check_exists
+            self._check_exts = check_exts
             self._data = validate_data(data, allowed_exts, check_exists, check_exts)
         except Exception as e:
             raise e
@@ -38,7 +38,7 @@ class Filelist:
     @data.setter
     def data(self, data):
         self._data = validate_data(data, self._allowed_exts,
-                                   self._check_exists)
+                                   self._check_exists, self._check_exts)
 
     def __add__(self, other):  # to dupe or not to dupe?
         try:

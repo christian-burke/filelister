@@ -120,8 +120,8 @@ def benchmark_read_compressed(test_file, iterations):
 
 
 if __name__ == '__main__':
-    NUM_ITERATIONS = 25
-    TEST_FILE = os.path.join(os.getcwd(), os.path.dirname(__file__), 'filelists/uncompressed_filelist.txt')
+    NUM_ITERATIONS = 2
+    TEST_FILE = os.path.join(os.getcwd(), os.path.dirname(__file__), 'filelists/national_parks.txt')
     compressed_file = os.path.splitext(TEST_FILE)[0] + '_compressed.zz'
     flist = fs.read_filelist(TEST_FILE, compressed=False,
                              check_exists=False, check_exts=False)
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     print('\n\n\n\n')
     benchmark_write_compressed(flist, NUM_ITERATIONS)
     print('\n\n\n\n')
-
+    NUM_ITERATIONS = 4
     # read benchmarks
     benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
     print('\n\n\n\n')
