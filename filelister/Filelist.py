@@ -3,8 +3,11 @@ Class build to handle Filelists
 """
 import zlib
 import os
+from itertools import repeat
 from collections import OrderedDict
+from multiprocessing import cpu_count, Pool
 from termcolor import colored
+
 
 class Filelist:
     """
@@ -113,20 +116,22 @@ class Filelist:
         """
         Writes a filelist to a txt file
         """
+        data = self.data
+
         if relative:
-            data = [os.path.relpath(fname, start=os.path.dirname(outfile))
-                    for fname in self.data]
-        else:
-            data = self.data
+            dirname = os.path.dirname(outfile)
+            with Pool(cpu_count()) as pool:
+                data = pool.starmap(abs_to_rel_multiprocess, zip(data, repeat(dirname)))
+
         if compressed:
             with open(outfile, 'wb') as f:
                 data = compress(self.data)
                 f.write(data)
-                # print(colored(f'filelist written to {outfile}', 'green'))
+
         else:
             with open(outfile, 'w', encoding='utf-8') as f:
                 f.write(os.linesep.join(data))
-                # print(colored(f'filelist written to {outfile}', 'green'))
+
 
     def view(self, relative=True):
         """Prints data"""
@@ -161,7 +166,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other)
+                other = Filelist(other, validate=False)
             return set(self.data).union(set(other.data))
         # NOTE: order not guaranteed
         except Exception as e:
@@ -173,7 +178,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other)
+                other = Filelist(other, validate=False)
             return set(self.data).difference(set(other.data))
         except Exception as e:
             raise e
@@ -184,7 +189,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other)
+                other = Filelist(other, validate=False)
             return set(self.data).intersection(set(other.data))
         except Exception as e:
             raise e
@@ -195,7 +200,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other)
+                other = Filelist(other, validate=False)
             return set(self.data).isdisjoint(set(other.data))
         except Exception as e:
             raise e
@@ -206,7 +211,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other)
+                other = Filelist(other, validate=False)
             return set(self.data).issubset(set(other.data))
         except Exception as e:
             raise e
@@ -217,7 +222,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other)
+                other = Filelist(other, validate=False)
             return set(self.data).issuperset(set(other.data))
         except Exception as e:
             raise e
@@ -228,7 +233,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other)
+                other = Filelist(other, validate=False)
             return set(self.data).symmetric_difference(set(other.data))
         except Exception as e:
             raise e
@@ -361,3 +366,9 @@ def compress(data):
     data_zip += obj.flush()
     data_zip = zdict + b'\n' + data_zip
     return data_zip
+
+
+def abs_to_rel_multiprocess(fname, dirname):
+    """converts absolute path to relative path for Filelist.save()"""
+
+    return os.path.relpath(fname, start=dirname)

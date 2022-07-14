@@ -5,8 +5,7 @@ functions to read filelists from text file and store in Filelist class
 import os
 import zlib
 from itertools import repeat
-from multiprocessing import cpu_count
-from multiprocessing import Pool
+from multiprocessing import cpu_count, Pool
 from .Filelist import Filelist, validate_data
 
 
