@@ -76,6 +76,16 @@ class Filelist:
         except Exception as e:
             raise e
 
+
+    def __iter__(self):
+        return iter(self.data)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, i):
+        return self.data[i]
+
     def __str__(self):
         if self._data:
             str_out = colored('printing filelist...', 'blue')
