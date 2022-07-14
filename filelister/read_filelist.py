@@ -2,42 +2,53 @@
 functions to read filelists from text file and store in Filelist class
 """
 
-import time
 import os
-from .Filelist import Filelist, validate_data
 import zlib
 from itertools import repeat
 from multiprocessing import cpu_count
 from multiprocessing import Pool
+from .Filelist import Filelist, validate_data
 
 
-
-def process_data(dirname, fname, relative=False):
-    # if check_exts:
-        # exts.add(os.path.splitext(fname)[1].rstrip())
-    #if relative:
-
-        return os.path.abspath(os.path.join(dirname, fname.rstrip()))
+def process_data(dirname, fname):
+    return os.path.abspath(os.path.join(dirname, fname.rstrip()))
 
 
 
 
-def read_filelist(infile, check_exists=False, compressed=False, allowed_exts=None):
+def read_filelist(infile,
+                  check_exists=False,
+                  compressed=False,
+                  allowed_exts=None,
+                  relative=True,
+                  validate=True):
+    """
+    reads filelist from a .txt or .zz file
+    run with relative=False and validate=False to improve runtime
+    """
+
     try:
         check_infile(infile)
+
         if compressed:
-            flist = read_compressed(infile)
+            data = read_compressed(infile)
         else:
-            flist = read_uncompressed(infile)
+            data = read_uncompressed(infile)
+
         dirname = os.path.abspath(os.path.dirname(infile))
 
-        with Pool(cpu_count()) as pool:
-            data = pool.starmap(process_data, zip(repeat(dirname), flist))
-        data = validate_data(data, allowed_exts, check_exists, False)
+        if relative:
+            with Pool(cpu_count()) as pool:
+                data = pool.starmap(process_data, zip(repeat(dirname), data))
+
+        if validate:
+            data = validate_data(data, allowed_exts, check_exists, check_exts=False, validate=validate)
+        # run validation manually and manually change filelist._data to improve runtime
         out = Filelist(None, allowed_exts=allowed_exts,
                            check_exists=check_exists)
         out._data = data
         return out
+
     except Exception as e:
         raise e
 

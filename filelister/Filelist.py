@@ -16,7 +16,7 @@ class Filelist:
     """
 
     def __init__(self, data=None, allowed_exts=None,
-                 check_exists=True, check_exts=True):
+                 check_exists=True, check_exts=True, validate=True):
         if allowed_exts is None:
             allowed_exts = ['.jpg', '.png', '.txt']
         validate_user_inputs(data, allowed_exts, check_exists)
@@ -24,7 +24,8 @@ class Filelist:
             self._allowed_exts = allowed_exts
             self._check_exists = check_exists
             self._check_exts = check_exts
-            self._data = validate_data(data, allowed_exts, check_exists, check_exts)
+            self._validate = validate
+            self._data = validate_data(data, allowed_exts, check_exists, check_exts, validate)
         except Exception as e:
             raise e
 
@@ -38,9 +39,9 @@ class Filelist:
     @data.setter
     def data(self, data):
         self._data = validate_data(data, self._allowed_exts,
-                                   self._check_exists, self._check_exts)
+                                   self._check_exists, self._check_exts, self._validate)
 
-    def __add__(self, other):  # to dupe or not to dupe?
+    def __add__(self, other):
         try:
             if not isinstance(other, Filelist):
                 other = Filelist(other)
@@ -83,8 +84,8 @@ class Filelist:
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, i):
-        return self.data[i]
+    def __getitem__(self, idx):
+        return self.data[idx]
 
     def __str__(self):
         if self._data:
@@ -256,7 +257,7 @@ def validate_user_inputs(data, exts, exists):
             'Invalid input type: check_exists must be of type bool')
 
 
-def validate_data(data, exts, exists, check_exts):
+def validate_data(data, exts, exists, check_exts, validate):
     """
     converts data to acceptable list format
     """
@@ -264,7 +265,8 @@ def validate_data(data, exts, exists, check_exts):
         data = format_input(data)
         if not data:
             return data
-
+        if not validate:
+            return data
         valid_data = []
         for filename in data:
             if exists:
@@ -337,14 +339,14 @@ def write_filelist(dirname,
                    relative=True,
                    compressed=False,
                    allowed_exts=None,
-                   check_exists=True):
+                   check_exists=True, validate=True):
     """
     writes a filelist for a given directory
     """
     if allowed_exts is None:
         allowed_exts = ['.jpg', '.png', '.txt']
     flist = Filelist(dirname, allowed_exts=allowed_exts,
-                     check_exists=check_exists)
+                     check_exists=check_exists, validate=validate)
     flist.save(outfile, relative=relative, compressed=compressed)
 
 
