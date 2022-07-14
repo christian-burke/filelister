@@ -26,16 +26,25 @@ my_other_filelist = fs.Filelist('path/to/directory')
 ```
 
 ### From System Files
-You can also create a Filelist object by reading from a filelist saved on your system.
+You can also create a Filelist object by reading from a filelist saved on your system. This metod also supports all of the filelist optional arguments. You can also set ```compressed=True``` to read a compressed filelist saved by filelister.
 
 ```python
 my_filelist = fs.read_filelist('path/to/filelist.txt')
 ```
 
+### Optional Arguments
+
+```python
+allowed_exts=None  # list of accepted file extensions
+check_exists=True  # check if paths point to existing files
+check_exts=True  # validate that all files have an accepted extension
+validate=True  # Set to false to skip all data validation and improve runtime for large filelists
+```
+
 ## Filelist Operations
 
 ### Arithmetic Operations
-Filelister supports the arithmetic operations `+`, `-`, `+=`, and `-=`.
+Filelister supports the arithmetic operations `+`, `-`, `+=`, and `-=`. These operations maintain order.
 
 ```python
 addition_filelist = my_filelist + my_other_filelist
@@ -60,13 +69,18 @@ my_filelist1.compare(my_filelist2)
 - tests/data/sample_03.txt
 - tests/data/sample_04.txt
 - tests/data/sample_05.txt
+
+{
+ '+': {'tests/data/sample_01.txt'},
+ '-': {'tests/data/sample_03.txt, 'tests/data/sample_04.txt', 'tests/data/sample_05.txt'}
+}
 ```
 
 ## Saving a Filelist
-To save a filelist, simply call `save` on the Filelist object. You can pass a custom `outpath` filename and set `relative=True` to save a filelist with relative paths. Note that the paths will be relative to the data depending on the directory the filelist is saved to.
+To save a filelist, simply call `save` on the Filelist object. You can pass a custom `outpath` filename and set `relative=True` to save a filelist with relative paths. Note that the paths will be relative to the data depending on the directory the filelist is saved to. You can also set `compressed=True` to save the filelist with custom zlib compression. This filelist must be read using filelister.
 
 ```python
-my_filelist.save('filelists/my_filelist.txt', relative=True)
+my_filelist.save('filelists/my_filelist.txt', relative=True, compressed=True)
 ```
 # Installation
 
