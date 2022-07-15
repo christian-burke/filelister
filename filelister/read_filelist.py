@@ -13,8 +13,6 @@ def process_data(dirname, fname):
     return os.path.abspath(os.path.join(dirname, fname.rstrip()))
 
 
-
-
 def read_filelist(infile,
                   check_exists=False,
                   compressed=False,
@@ -41,10 +39,15 @@ def read_filelist(infile,
                 data = pool.starmap(process_data, zip(repeat(dirname), data))
 
         if validate:
-            data = validate_data(data, allowed_exts, check_exists, check_exts=False, validate=validate)
-        # run validation manually and manually change filelist._data to improve runtime
+            data = validate_data(data,
+                                 allowed_exts,
+                                 check_exists,
+                                 check_exts=False,
+                                 validate=validate)
+        # run validation manually and manually change filelist._data
+        # Improves runtime
         out = Filelist(None, allowed_exts=allowed_exts,
-                           check_exists=check_exists)
+                       check_exists=check_exists)
         out._data = data
         return out
 
