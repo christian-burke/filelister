@@ -90,7 +90,7 @@ class Filelist:
     def __getitem__(self, idx):
         if isinstance(idx, int):
             return self.data[idx]
-        return Filelist(self.data[idx])
+        return Filelist(self.data[idx], validate=False)
 
     def __str__(self):
         if self._data:
