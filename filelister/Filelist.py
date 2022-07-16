@@ -246,6 +246,10 @@ class Filelist:
         """
         self._data.sort()
 
+    def tolist(self):
+        """returns filelist as a native python list"""
+        return self.data
+
 
 def validate_user_inputs(data, exts, exists):
     """
