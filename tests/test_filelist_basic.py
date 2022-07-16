@@ -393,6 +393,36 @@ class TestUtils:
         with pytest.raises(TypeError, match = 'Invalid input: filename must be a string'):
             flist.contains(1234)
 
+    def test_tolist(self):
+        flist = fs.Filelist(test_list)
+        assert flist.tolist() == test_list
+
+class TestProperties:
+    def test_index(self):
+        flist = fs.Filelist(test_list)
+        assert flist[1] == test_list[1]
+        assert flist[0] == test_list[0]
+        assert flist[4] == test_list[4]
+        assert flist[-1] == test_list[-1]
+
+    def test_index_out_of_range(self):
+        flist = fs.Filelist(test_list)
+        with pytest.raises(IndexError, match = 'Index out of range'):
+            error = flist[5]
+
+    def test_slicing(self):
+        flist = fs.Filelist(test_list)
+        assert flist[:3].tolist() == sample_data
+        assert flist[2:].tolist() == sample_data2
+        assert flist[:].tolist() == test_list
+        assert flist[:-2].tolist() == sample_data
+
+    def test_len(self):
+        flist = fs.Filelist(test_list)
+        assert len(flist) == 5
+        flist = fs.Filelist(sample_data)
+        assert len(flist) == 3
+
 
 class TestCompression:
     """

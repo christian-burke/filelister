@@ -88,9 +88,12 @@ class Filelist:
         return len(self.data)
 
     def __getitem__(self, idx):
-        if isinstance(idx, int):
-            return self.data[idx]
-        return Filelist(self.data[idx], validate=False)
+        try:
+            if isinstance(idx, int):
+                return self.data[idx]
+            return Filelist(self.data[idx], validate=False)
+        except IndexError as e:
+            raise IndexError('Index out of range') from e
 
     def __str__(self):
         if self._data:
