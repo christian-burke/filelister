@@ -1,11 +1,12 @@
 """
 Class build to handle Filelists
 """
-import zlib
 import os
-from itertools import repeat
+import zlib
 from collections import OrderedDict
-from multiprocessing import cpu_count, Pool
+from itertools import repeat
+from multiprocessing import Pool, cpu_count
+
 from termcolor import colored
 
 
@@ -13,22 +14,60 @@ class Filelist:
     """
     Filelist class for creating, manipulating, comparing, and exporting filelists.
 
-    # TODO: Idea, make a view() that can be set to abs or relative
+    # TODO: UPDATE DOCS
     # _data for program always abs, view_data which can be abs or rel for programmer
-    # add list methods with maintained order (no cast to set)?
+    Main organizational issues:
+        - multiprocessing as a solution to inefficient code
+        - extraneous printing (even if its colorful :'( )
+        - os.path can be very slow if you're running it 3 mil times
+        - order of class methods?
+        - make sure our imports are done correctly
+        - lookup dict without impacting runtime?
+        - too many optional args
+
+    Solutions:
+        - multiprocessing
+            - Find an os.commonpath and strcat instead of os.path?
+                -  Might result in unnormalized paths (/Users/simon/../christian/dev/...)
+                - Add option to specify abs filelist and skip os path ops?
+                    - accepts bad runtime for rel flist
+                - Limit number of validation options and keep validate=False option?
+                - ext list defaults to any extension?
+      - lookup dict updated/instantiated only when set/lookup ops are called
+            - store variable self._look_needs_update = True
+            - an OrderedDict is currently used for dupe removal
+                - can this be utilized elsewhere?
+
+     Bonus features:
+         - write_filelist would be a nice command line function
+         - set ops w order
+         - improve validation runtime
+
     """
 
-    def __init__(self, data=None, allowed_exts=None,
-                 check_exists=True, check_exts=True, validate=True):
+    # Limit number of args? Maybe validate should be a lit of valiations to perform?
+    def __init__(
+        self,
+        data=None,
+        allowed_exts=None,
+        check_exists=True,
+        check_exts=True,
+        validate=True,
+    ):
         if allowed_exts is None:
-            allowed_exts = ['.jpg', '.png', '.txt']
+            allowed_exts = [".jpg", ".png", ".txt"]
         validate_user_inputs(data, allowed_exts, check_exists)
         try:
             self._allowed_exts = allowed_exts
             self._check_exists = check_exists
             self._check_exts = check_exts
             self._validate = validate
-            self._data = validate_data(data, allowed_exts, check_exists, check_exts, validate)
+            validated = validate_data(
+                data, allowed_exts, check_exists, check_exts, validate
+            )
+            self._data = validated["data"]
+            print(self._data)
+            self._lookup_table = validated["dict"]
         except Exception as e:
             raise e
 
@@ -41,8 +80,15 @@ class Filelist:
 
     @data.setter
     def data(self, data):
-        self._data = validate_data(data, self._allowed_exts,
-                                   self._check_exists, self._check_exts, self._validate)
+        validated = validate_data(
+            data,
+            self._allowed_exts,
+            self._check_exists,
+            self._check_exts,
+            self._validate,
+        )
+        self._data = validated["data"]
+        self._lookup_table = validated["dict"]
 
     def __add__(self, other):
         try:
@@ -58,6 +104,7 @@ class Filelist:
                 other = Filelist(other)
             new_flist = self + other
             self._data = new_flist.data
+            self._lookup_table = new_flist._lookup_table
             return self
         except Exception as e:
             raise e
@@ -76,10 +123,10 @@ class Filelist:
                 other = Filelist(other)
             new_flist = self - other
             self._data = new_flist.data
+            self._lookup_table = new_flist._lookup_table
             return self
         except Exception as e:
             raise e
-
 
     def __iter__(self):
         return iter(self.data)
@@ -94,11 +141,11 @@ class Filelist:
 
     def __str__(self):
         if self._data:
-            str_out = colored('printing filelist...', 'blue')
+            str_out = colored("printing filelist...", "blue")
             for fname in self.data:
-                str_out += '\n' + fname
+                str_out += "\n" + fname
             return str_out
-        return 'Empty Filelist'
+        return "Empty Filelist"
 
     def __sorted__(self):
         return Filelist(self._data).sort()
@@ -108,32 +155,27 @@ class Filelist:
         Returns True if the filelist contains a given filename.
         """
         if not isinstance(filename, str):
-            raise TypeError('Invalid input: filename must be a string')
-        if filename[0] != '/':
+            raise TypeError("Invalid input: filename must be a string")
+        if filename[0] != "/":
             filename = relative_to_abs(filename)
-        return filename in self.data
+        return filename in self._lookup_table
 
-
-    def save(self, outfile='filelist.txt', relative=False, compressed=False):
+    def save(self, outfile="filelist.txt", relative=False, compressed=False):
         """
         Writes a filelist to a txt file
         """
-        data = self.data
+        data = self._data.copy()
 
         if relative:
-            dirname = os.path.dirname(outfile)
-            with Pool(cpu_count()) as pool:
-                data = pool.starmap(abs_to_rel_multiprocess, zip(data, repeat(dirname)))
-
+            data = abs_to_rel_list(data, os.path.dirname(outfile))
         if compressed:
-            with open(outfile, 'wb') as f:
+            with open(outfile, "wb") as f:
                 data = compress(self.data)
                 f.write(data)
 
         else:
-            with open(outfile, 'w', encoding='utf-8') as f:
+            with open(outfile, "w", encoding="utf-8") as f:
                 f.write(os.linesep.join(data))
-
 
     def view(self, relative=True):
         """Prints data"""
@@ -152,12 +194,12 @@ class Filelist:
         try:
             if not isinstance(other, Filelist):
                 other = Filelist(other)
-            set_diff['+'] = set(self.data).difference(set(other.data))
-            set_diff['-'] = set(other.data).difference(set(self.data))
-            for diff in set_diff['+']:
-                print(colored(f'[ + ] {diff}', 'green'))
-            for diff in set_diff['-']:
-                print(colored(f'[ - ] {diff}', 'red'))
+            set_diff["+"] = set(self.data).difference(set(other.data))
+            set_diff["-"] = set(other.data).difference(set(self.data))
+            for diff in set_diff["+"]:
+                print(colored(f"[ + ] {diff}", "green"))
+            for diff in set_diff["-"]:
+                print(colored(f"[ - ] {diff}", "red"))
             return set_diff
         except Exception as e:
             raise e
@@ -191,7 +233,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other, validate=False)
+                other = Filelist(other)
             return set(self.data).intersection(set(other.data))
         except Exception as e:
             raise e
@@ -202,7 +244,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other, validate=False)
+                other = Filelist(other)
             return set(self.data).isdisjoint(set(other.data))
         except Exception as e:
             raise e
@@ -213,7 +255,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other, validate=False)
+                other = Filelist(other)
             return set(self.data).issubset(set(other.data))
         except Exception as e:
             raise e
@@ -224,7 +266,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other, validate=False)
+                other = Filelist(other)
             return set(self.data).issuperset(set(other.data))
         except Exception as e:
             raise e
@@ -235,7 +277,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other, validate=False)
+                other = Filelist(other)
             return set(self.data).symmetric_difference(set(other.data))
         except Exception as e:
             raise e
@@ -254,14 +296,12 @@ def validate_user_inputs(data, exts, exists):
     accepted_data_types = [list, set, tuple, str, Filelist, type(None)]
     # remove None?
     if type(data) not in accepted_data_types:
-        raise TypeError(f'Invalid input type: {type(data)}')
+        raise TypeError(f"Invalid input type: {type(data)}")
     if not isinstance(exts, list):
-        raise TypeError(
-            'Invalid input type: allowed_exts must be of type list')
+        raise TypeError("Invalid input type: allowed_exts must be of type list")
     # check file exts passed
     if not isinstance(exists, bool):
-        raise TypeError(
-            'Invalid input type: check_exists must be of type bool')
+        raise TypeError("Invalid input type: check_exists must be of type bool")
 
 
 def validate_data(data, exts, exists, check_exts, validate):
@@ -271,22 +311,30 @@ def validate_data(data, exts, exists, check_exts, validate):
     try:
         data = format_input(data)
         if not data:
-            return data
+            return {"data": [], "dict": {}}
         if not validate:
-            return data
+            return {
+                "data": data,
+                "dict": {fname: idx for idx, fname in enumerate(data)},
+            }
         valid_data = []
-        for filename in data:
+        common_path = os.path.dirname(os.path.commonprefix(data))
+        abs_common_path = os.path.abspath(os.path.join(os.getcwd(), common_path))
+        lookup_dict = {}
+        for idx, filename in enumerate(data):
             if exists:
                 if not os.path.isfile(filename):
-                    raise FileNotFoundError(f'File Not Found: {filename}')
+                    raise FileNotFoundError(f"File Not Found: {filename}")
             if check_exts:
                 if os.path.splitext(filename)[1] not in exts:
-                    raise TypeError(f'Bad file type: {filename}')
-            is_abs = filename[0] == '/'
+                    raise TypeError(f"Bad file type: {filename}")
+            is_abs = filename[0] == "/"
             if not is_abs:
-                filename = relative_to_abs(filename)
-            valid_data.append(filename)
-        return list(OrderedDict.fromkeys(valid_data))
+                filename = abs_common_path + filename[len(common_path) :]
+            if filename not in lookup_dict:
+                lookup_dict[filename] = idx
+                valid_data.append(filename)
+        return {"data": valid_data, "dict": lookup_dict}
     except Exception as e:
         raise e
 
@@ -308,8 +356,8 @@ def format_input(data):
             return [os.path.abspath(data)]
         if os.path.isdir(data):
             return read_dir(data)
-        raise FileNotFoundError(f'File Not Found: {data}')
-    raise TypeError(f'Invalid input type: {type(data)}')
+        raise FileNotFoundError(f"File Not Found: {data}")
+    raise TypeError(f"Invalid input type: {type(data)}")
 
 
 def read_dir(data):
@@ -320,8 +368,7 @@ def read_dir(data):
         data_out = []
         for path, _, files in os.walk(data):
             for filename in files:
-                data_out.append(
-                    os.path.abspath(os.path.join(path, filename)))
+                data_out.append(os.path.abspath(os.path.join(path, filename)))
         return data_out
     except Exception as e:
         raise e
@@ -341,19 +388,23 @@ def abs_to_rel(path):
     return os.path.relpath(path, start=os.getcwd())
 
 
-def write_filelist(dirname,
-                   outfile,
-                   relative=True,
-                   compressed=False,
-                   allowed_exts=None,
-                   check_exists=True, validate=True):
+def write_filelist(
+    dirname,
+    outfile,
+    relative=True,
+    compressed=False,
+    allowed_exts=None,
+    check_exists=True,
+    validate=True,
+):
     """
     writes a filelist for a given directory
     """
     if allowed_exts is None:
-        allowed_exts = ['.jpg', '.png', '.txt']
-    flist = Filelist(dirname, allowed_exts=allowed_exts,
-                     check_exists=check_exists, validate=validate)
+        allowed_exts = [".jpg", ".png", ".txt"]
+    flist = Filelist(
+        dirname, allowed_exts=allowed_exts, check_exists=check_exists, validate=validate
+    )
     flist.save(outfile, relative=relative, compressed=compressed)
 
 
@@ -361,16 +412,18 @@ def compress(data):
     """
     compresses a filelist to be written to a text file
     """
-    zdict = os.path.commonprefix(data).encode('utf-8')
+    zdict = os.path.commonprefix(data).encode("utf-8")
     obj = zlib.compressobj(level=1, memLevel=9, zdict=zdict)
-    data = ','.join(data).encode('utf-8')
+    data = ",".join(data).encode("utf-8")
     data_zip = obj.compress(data)
     data_zip += obj.flush()
-    data_zip = zdict + b'\n' + data_zip
+    data_zip = zdict + b"\n" + data_zip
     return data_zip
 
 
-def abs_to_rel_multiprocess(fname, dirname):
-    """converts absolute path to relative path for Filelist.save()"""
+def abs_to_rel_list(data, start):
+    """converts absolute list to relative list for Filelist.save()"""
 
-    return os.path.relpath(fname, start=dirname)
+    common_path = os.path.dirname(os.path.commonprefix(data))
+    rel_common_path = os.path.relpath(common_path, start=start)
+    return [rel_common_path + fname[len(common_path) :] for fname in data]
