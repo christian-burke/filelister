@@ -3,12 +3,9 @@ functions to read filelists from text file and store in Filelist class
 """
 
 import os
-import time
 import zlib
-from itertools import repeat
-from multiprocessing import Pool, cpu_count
 
-from .Filelist import Filelist, validate_data
+from .Filelist import Filelist
 
 
 def process_data(dirname, fname):
@@ -18,14 +15,7 @@ def process_data(dirname, fname):
     return os.path.abspath(os.path.join(dirname, fname.rstrip()))
 
 
-def read_filelist(
-    infile,
-    check_exists=False,
-    compressed=False,
-    allowed_exts=None,
-    relative=True,
-    validate=True,
-):
+def read_filelist(infile, check_exists=False, compressed=False, allowed_exts=None):
     """
     reads filelist from a .txt or .zz file
     run with relative=False and validate=False to improve runtime
@@ -33,34 +23,26 @@ def read_filelist(
 
     try:
         check_infile(infile)
+
         if compressed:
             data = read_compressed(infile)
         else:
             data = read_uncompressed(infile)
+
         dirname = os.path.dirname(infile)
-        # This also seems like a bad solution to the problem of performing 3+ mil os.path operations
-        start = time.time()
         common_path = os.path.dirname(os.path.commonprefix(data))
         abs_common_path = os.path.abspath(os.path.join(dirname, common_path))
-        end = time.time()
-        print(common_path, "\ntime: ", end - start)
-        # with Pool(cpu_count()) as pool:
-        #    data = pool.starmap(process_data, zip(repeat(dirname), data))
-        start = time.time()
 
         def join_paths(fname):
             if fname[0] == "/":
                 return fname
             return abs_common_path + fname[len(common_path) :]
 
-        data = [join_paths(fname) for fname in data]
-        end = time.time()
-        print("time to combine strings: ", end - start)
+        data = [join_paths(fname).rstrip() for fname in data]
         return Filelist(
             data,
             allowed_exts=allowed_exts,
             check_exists=check_exists,
-            validate=validate,
         )
 
     except Exception as e:
@@ -68,7 +50,6 @@ def read_filelist(
 
 
 def read_compressed(infile):
-
     """
     reads a compressed filelist
     """
@@ -89,16 +70,6 @@ def read_uncompressed(infile):
     """
     with open(infile, encoding="utf-8") as f:
         return f.read().rstrip().split("\n")
-
-
-# Unused func
-def check_duplicate_path(fpaths):
-    """
-    checks if there is a duplicate filepath in filelist
-    """
-    fpath_set = set(fpaths)
-    if len(fpath_set) != len(fpaths):
-        raise ValueError("filelist contains a duplicate file")
 
 
 def check_infile(infile):

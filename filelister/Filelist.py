@@ -3,9 +3,6 @@ Class build to handle Filelists
 """
 import os
 import zlib
-from collections import OrderedDict
-from itertools import repeat
-from multiprocessing import Pool, cpu_count
 
 from termcolor import colored
 
@@ -17,31 +14,19 @@ class Filelist:
     # TODO: UPDATE DOCS
     # _data for program always abs, view_data which can be abs or rel for programmer
     Main organizational issues:
-        - multiprocessing as a solution to inefficient code
+        - multiprocessing as a solution to inefficient code FIXED
         - extraneous printing (even if its colorful :'( )
-        - os.path can be very slow if you're running it 3 mil times
+        - os.path can be very slow if you're running it 3 mil times FIXED
         - order of class methods?
         - make sure our imports are done correctly
-        - lookup dict without impacting runtime?
+        - lookup dict without impacting runtime? FIXED
         - too many optional args
-
-    Solutions:
-        - multiprocessing
-            - Find an os.commonpath and strcat instead of os.path?
-                -  Might result in unnormalized paths (/Users/simon/../christian/dev/...)
-                - Add option to specify abs filelist and skip os path ops?
-                    - accepts bad runtime for rel flist
-                - Limit number of validation options and keep validate=False option?
-                - ext list defaults to any extension?
-      - lookup dict updated/instantiated only when set/lookup ops are called
-            - store variable self._look_needs_update = True
-            - an OrderedDict is currently used for dupe removal
-                - can this be utilized elsewhere?
 
      Bonus features:
          - write_filelist would be a nice command line function
          - set ops w order
          - improve validation runtime
+         - dev version for lightweight filelist ops
 
     """
 
@@ -52,7 +37,6 @@ class Filelist:
         allowed_exts=None,
         check_exists=True,
         check_exts=True,
-        validate=True,
     ):
         if allowed_exts is None:
             allowed_exts = [".jpg", ".png", ".txt"]
@@ -61,12 +45,8 @@ class Filelist:
             self._allowed_exts = allowed_exts
             self._check_exists = check_exists
             self._check_exts = check_exts
-            self._validate = validate
-            validated = validate_data(
-                data, allowed_exts, check_exists, check_exts, validate
-            )
+            validated = validate_data(data, allowed_exts, check_exists, check_exts)
             self._data = validated["data"]
-            print(self._data)
             self._lookup_table = validated["dict"]
         except Exception as e:
             raise e
@@ -85,7 +65,6 @@ class Filelist:
             self._allowed_exts,
             self._check_exists,
             self._check_exts,
-            self._validate,
         )
         self._data = validated["data"]
         self._lookup_table = validated["dict"]
@@ -137,7 +116,7 @@ class Filelist:
     def __getitem__(self, idx):
         if isinstance(idx, int):
             return self.data[idx]
-        return Filelist(self.data[idx], validate=False)
+        return Filelist(self.data[idx])
 
     def __str__(self):
         if self._data:
@@ -210,7 +189,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other, validate=False)
+                other = Filelist(other)
             return set(self.data).union(set(other.data))
         # NOTE: order not guaranteed
         except Exception as e:
@@ -222,7 +201,7 @@ class Filelist:
         """
         try:
             if not isinstance(other, Filelist):
-                other = Filelist(other, validate=False)
+                other = Filelist(other)
             return set(self.data).difference(set(other.data))
         except Exception as e:
             raise e
@@ -288,6 +267,10 @@ class Filelist:
         """
         self._data.sort()
 
+    def tolist(self):
+        """returns filelist as python list"""
+        return self.data
+
 
 def validate_user_inputs(data, exts, exists):
     """
@@ -304,39 +287,45 @@ def validate_user_inputs(data, exts, exists):
         raise TypeError("Invalid input type: check_exists must be of type bool")
 
 
-def validate_data(data, exts, exists, check_exts, validate):
+def validate_data(data, exts, exists, check_exts):
     """
     converts data to acceptable list format
     """
     try:
         data = format_input(data)
+        exts = {ext: None for ext in exts}
         if not data:
             return {"data": [], "dict": {}}
-        if not validate:
-            return {
-                "data": data,
-                "dict": {fname: idx for idx, fname in enumerate(data)},
-            }
         valid_data = []
         common_path = os.path.dirname(os.path.commonprefix(data))
         abs_common_path = os.path.abspath(os.path.join(os.getcwd(), common_path))
         lookup_dict = {}
+
         for idx, filename in enumerate(data):
             if exists:
-                if not os.path.isfile(filename):
-                    raise FileNotFoundError(f"File Not Found: {filename}")
+                check_file_exists(filename)
+
             if check_exts:
                 if os.path.splitext(filename)[1] not in exts:
                     raise TypeError(f"Bad file type: {filename}")
+
             is_abs = filename[0] == "/"
             if not is_abs:
                 filename = abs_common_path + filename[len(common_path) :]
+
             if filename not in lookup_dict:
                 lookup_dict[filename] = idx
                 valid_data.append(filename)
+
         return {"data": valid_data, "dict": lookup_dict}
+
     except Exception as e:
         raise e
+
+
+def check_file_exists(fname):
+    if not os.path.isfile(fname):
+        raise FileNotFoundError(f"File Not Found: {fname}")
 
 
 def format_input(data):
@@ -394,17 +383,13 @@ def write_filelist(
     relative=True,
     compressed=False,
     allowed_exts=None,
-    check_exists=True,
-    validate=True,
 ):
     """
     writes a filelist for a given directory
     """
     if allowed_exts is None:
         allowed_exts = [".jpg", ".png", ".txt"]
-    flist = Filelist(
-        dirname, allowed_exts=allowed_exts, check_exists=check_exists, validate=validate
-    )
+    flist = Filelist(dirname, allowed_exts=allowed_exts, check_exists=False)
     flist.save(outfile, relative=relative, compressed=compressed)
 
 

@@ -23,27 +23,56 @@ def get_uncompressed_metrics(path):
     return size, lines
 
 
-def benchmark_read_uncompressed(test_file, iterations):
+def benchmark_read_uncompressed_best(test_file, iterations):
     """
     benchmarks uncompressed reads
     """
-    print("Benchmarking Uncompressed Reads")
+    print("Benchmarking Best-case Uncompressed Read")
     file_size, num_lines = get_uncompressed_metrics(test_file)
     print(f"Test File: {test_file}")
     print(f"Iterations: {iterations}")
     print(f"Total Lines: {num_lines}")
     print(f"File Size: {file_size / 1000000} MB")
     runtimes = set()
-    for _ in tqdm(range(iterations)):
+    for _ in range(iterations):
         start = time.time()
-        fs.read_filelist(test_file, check_exists=False, compressed=False)
+        fs.read_filelist(
+            test_file,
+            check_exists=False,
+            compressed=False,
+            relative=False,
+            validate=False,
+        )
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
-    print(f"Max execution time: {max(runtimes)} seconds")
-    print(f"Min execution time: {min(runtimes)} seconds")
+
+
+def benchmark_read_uncompressed_worst(test_file, iterations):
+    """
+    benchmarks uncompressed reads
+    """
+    print("Benchmarking Worst-case Uncompressed Reads")
+    file_size, num_lines = get_uncompressed_metrics(test_file)
+    print(f"Test File: {test_file}")
+    print(f"Iterations: {iterations}")
+    print(f"Total Lines: {num_lines}")
+    print(f"File Size: {file_size / 1000000} MB")
+    runtimes = set()
+    for _ in range(iterations):
+        start = time.time()
+        fs.read_filelist(
+            test_file,
+            compressed=False,
+            relative=True,
+            validate=True,
+            check_exists=False,
+        )
+        end = time.time()
+        runtimes.add(end - start)
+    total_runtime = sum(runtimes)
+    print(f"Total execution time: {total_runtime} seconds")
 
 
 def benchmark_write_uncompressed(test_list, iterations):
@@ -53,35 +82,13 @@ def benchmark_write_uncompressed(test_list, iterations):
     print("Benchmarking Uncompressed Writes")
     print(f"Iterations: {iterations}")
     runtimes = set()
-    for _ in tqdm(range(iterations)):
+    for _ in range(iterations):
         start = time.time()
         test_list.save("uncompressed_write.txt", compressed=False, relative=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
-    print(f"Max execution time: {max(runtimes)} seconds")
-    print(f"Min execution time: {min(runtimes)} seconds")
-
-
-def benchmark_write_uncompressed_rel(test_list, iterations):
-    """
-    benchmarks uncompressed relative writes
-    """
-    print("Benchmarking Uncompressed Relative Writes")
-    print(f"Iterations: {iterations}")
-    runtimes = set()
-    for _ in tqdm(range(iterations)):
-        start = time.time()
-        test_list.save("uncompressed_write_rel.txt", compressed=False, relative=True)
-        end = time.time()
-        runtimes.add(end - start)
-    total_runtime = sum(runtimes)
-    print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
-    print(f"Max execution time: {max(runtimes)} seconds")
-    print(f"Min execution time: {min(runtimes)} seconds")
 
 
 def benchmark_write_compressed(test_list, iterations):
@@ -91,16 +98,13 @@ def benchmark_write_compressed(test_list, iterations):
     print("Benchmarking Compressed Writes")
     print(f"Iterations: {iterations}")
     runtimes = set()
-    for _ in tqdm(range(iterations)):
+    for _ in range(iterations):
         start = time.time()
         test_list.save("compressed_write.zz", compressed=True, relative=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
-    print(f"Max execution time: {max(runtimes)} seconds")
-    print(f"Min execution time: {min(runtimes)} seconds")
 
 
 def get_compressed_metrics(path):
@@ -110,38 +114,62 @@ def get_compressed_metrics(path):
     with open(path, "rb") as f:
         raw_data = f.read()
         size = sys.getsizeof(raw_data)
-    read_flist = fs.read_filelist(path, check_exists=False, compressed=True)
-    lines = len(read_flist.data)
+    flist = fs.read_filelist(
+        path, check_exists=False, compressed=True, relative=False, validate=False
+    )
+    lines = len(flist.data)
     return size, lines
 
 
-def benchmark_read_compressed(test_file, iterations):
+def benchmark_read_compressed_best(test_file, iterations):
     """
     benchmarks compressed reads
     """
-    print("Benchmarking Compressed Reads")
+    print("Benchmarking Best-case Compressed Reads")
     file_size, num_lines = get_compressed_metrics(test_file)
     print(f"Test File: {test_file}")
     print(f"Iterations: {iterations}")
     print(f"Total Lines: {num_lines}")
     print(f"File Size: {file_size / 1000000} MB")
     runtimes = set()
-    for _ in tqdm(range(iterations)):
+    for _ in range(iterations):
         start = time.time()
-        fs.read_filelist(test_file, compressed=True)
+        fs.read_filelist(test_file, compressed=True, relative=False, validate=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
-    print(f"Max execution time: {max(runtimes)} seconds")
-    print(f"Min execution time: {min(runtimes)} seconds")
+
+
+def benchmark_read_compressed_worst(test_file, iterations):
+    """
+    benchmarks compressed reads
+    """
+    print("Benchmarking Worst-case Compressed Reads")
+    file_size, num_lines = get_compressed_metrics(test_file)
+    print(f"Test File: {test_file}")
+    print(f"Iterations: {iterations}")
+    print(f"Total Lines: {num_lines}")
+    print(f"File Size: {file_size / 1000000} MB")
+    runtimes = set()
+    for _ in range(iterations):
+        start = time.time()
+        fs.read_filelist(
+            test_file, compressed=True, relative=True, check_exists=False, validate=True
+        )
+        end = time.time()
+        runtimes.add(end - start)
+    total_runtime = sum(runtimes)
+    print(f"Total execution time: {total_runtime} seconds")
 
 
 if __name__ == "__main__":
-    NUM_ITERATIONS = 2
+    NUM_ITERATIONS = 1
     TEST_FILE = os.path.join(
         os.getcwd(), os.path.dirname(__file__), "filelists/national_parks.txt"
+    )
+    TEST_FILE_REL = os.path.join(
+        os.getcwd(), os.path.dirname(__file__), "filelists/rel_national_parks.txt"
     )
     compressed_file = os.path.splitext(TEST_FILE)[0] + "_compressed.zz"
     flist = fs.read_filelist(TEST_FILE, compressed=False, check_exists=False)
@@ -151,20 +179,21 @@ if __name__ == "__main__":
 
     # write benchmarks
     benchmark_write_uncompressed(flist, NUM_ITERATIONS)
-    print("\n\n")
-    benchmark_write_uncompressed_rel(flist, NUM_ITERATIONS)
-    print("\n\n")
+    print("\n\n\n\n")
     benchmark_write_compressed(flist, NUM_ITERATIONS)
     print("\n\n\n\n")
-    NUM_ITERATIONS = 4
+    NUM_ITERATIONS = 1
     # read benchmarks
-    benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
-    print("\n\n")
-    benchmark_read_uncompressed("uncompressed_write_rel.txt", NUM_ITERATIONS)
-    print("\n\n")
-    benchmark_read_compressed(compressed_file, NUM_ITERATIONS)
-    print("\n\n")
-    rel_flist = fs.read_filelist("uncompressed_write_rel.txt")
-    print(flist.compare(rel_flist))
-    print(len(rel_flist.data))
+    #    benchmark_read_uncompressed_best(TEST_FILE, NUM_ITERATIONS)
+    print("\n\n\n\n")
+    benchmark_read_uncompressed_worst(TEST_FILE_REL, NUM_ITERATIONS)
+    print("\n\n\n\n")
+    #    benchmark_read_compressed_best(compressed_file, NUM_ITERATIONS)
+    print("\n\n\n\n")
+    benchmark_read_compressed_worst(compressed_file, NUM_ITERATIONS)
+    compressed_flist = fs.read_filelist(compressed_file, compressed=True)
+    # print(flist.compare(compressed_flist))
+    # print(len(compressed_flist.data))
+    flist = fs.read_filelist(TEST_FILE_REL, validate=False)
     print(len(flist.data))
+    print(flist[:10])
