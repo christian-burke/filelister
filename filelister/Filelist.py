@@ -29,105 +29,169 @@ class Filelist:
          - dev version for lightweight filelist ops
 
     """
+    # flist = Filelist("...")
+    # flist.validate()
 
-    # Limit number of args? Maybe validate should be a lit of valiations to perform?
     def __init__(
         self,
-        data=None,
-        allowed_exts=None,
-        check_exists=True,
-        check_exts=True,
+        input_data=None
     ):
-        if allowed_exts is None:
-            allowed_exts = [".jpg", ".png", ".txt"]
-        validate_user_inputs(data, allowed_exts, check_exists)
-        try:
-            self._allowed_exts = allowed_exts
-            self._check_exists = check_exists
-            self._check_exts = check_exts
-            validated = validate_data(data, allowed_exts, check_exists, check_exts)
-            self._data = validated["data"]
-            self._lookup_table = validated["dict"]
-        except Exception as e:
-            raise e
+        self._curr_commpfx  # default common prefix (path)
+        self._abs_commpfx = ""  # absolute common prefix (path)
+        self._rel_commpfx = ""  # relative common prefix (path)
+
+        self._data = []  # uncommon postfixes
+        self._lookup_table = {}  # lookup table: uncommon postfix -> num occurrences
+
+        if isinstance(input_data, Filelist):
+            raise TypeError(f"{input_data} is already a Filelist")
+
+        if not isinstance(input_data, (list, set, tuple, str, type(None))):
+            raise TypeError(f"Invalid input type: {type(input_data)}")
+
+        if isinstance(input_data, (list, set, tuple)):
+            self.__build_internal(input_data)
+
+        if isinstance(input_data, str):
+            try:
+                if not os.path.isdir(input_data):
+                    raise FileNotFoundError(f"{input_data} is not a directory")
+                tmp = []
+                for path, _, files in os.walk(input_data):
+                    for filename in files:
+                        tmp.append(path + os.sep + filename)
+                self.__build_internal(tmp)
+            except Exception as e:
+                raise e
+
+    def __build_internal(self, input_data):
+        """builds the internals"""
+        self._curr_commpfx = os.path.dirname(os.path.commonprefix(input_data))
+        if not self._curr_commpfx == "":
+            self._abs_commpfx = os.path.abspath(self._curr_commpfx)
+            self._rel_commpfx = os.path.relpath(self._curr_commpfx, start=os.getcwd())
+        for filename in input_data:
+            # trimmed_filename = filename[len(self._curr_commpfx) :]
+            self._data.append(filename)
+            self.__add_entry_to_lookup(self.__truncate(filename))
+
+    def __add_entry_to_lookup(self, filename):  # lazy lookup table
+        if filename not in self._lookup_table:
+            self._lookup_table[filename] = 1
+        else:
+            self._lookup_table[filename] += 1
+
+    def __remove_entry_from_lookup(self, filename):  # lazy lookup table
+        if filename not in self._lookup_table:
+            pass
+        else:
+            self._lookup_table[filename] -= 1
+            if self._lookup_table[filename] == 0:
+                self._lookup_table.remove(filename)
+
+    def __truncate(self, filepath):
+        return filepath[len(self._curr_commpfx) :]
+
+    def to_abs(self): # Should work... probably
+        if self.is_abs():
+            return # raise?
+        abs_flist = Filelist()
+        abs_flist._data = [self._abs_commpfx + fname[self._curr_commpfx :] for fname in self._data]
+        abs_flist._curr_commpfx = self._abs_commpfx
+        abs_flist._abs_commpfx = self._abs_commpfx
+        abs_flist._rel_commpfx = self._rel_commpfx
+        return abs_flist
 
     @property
     def data(self):
         """
-        data property and setter method
+        data property getter method
         """
         return self._data
 
-    @data.setter
-    def data(self, data):
-        validated = validate_data(
-            data,
-            self._allowed_exts,
-            self._check_exists,
-            self._check_exts,
-        )
-        self._data = validated["data"]
-        self._lookup_table = validated["dict"]
+    def is_abs(self):
+        return self._curr_commpfx[0] == "/"
 
-    def __add__(self, other):
+    def is_rel(self):
+        return not self.is_abs()
+
+    def __add__(self, input_data):
         try:
-            if not isinstance(other, Filelist):
-                other = Filelist(other)
-            return Filelist(self._data + other._data)
+            if isinstance(input_data, str):
+                raise TypeError(f"Cannot add a string to a Filelist")
+            if not isinstance(input_data, Filelist):
+                input_data = Filelist(input_data)
+            
+            op1 = self.data if self.is_abs() else self.to_abs().data
+            op2 = input_data.data if input_data.is_abs() else input_data.to_abs().data
+
+            return Filelist(op1 + op2)
         except Exception as e:
             raise e
 
     def __iadd__(self, other):
         try:
-            if not isinstance(other, Filelist):
-                other = Filelist(other)
-            new_flist = self + other
-            self._data = new_flist.data
-            self._lookup_table = new_flist._lookup_table
+            other_data = check_and_format_operand_input(other)
+            curr_idx = len(self._data) - 1
+            for idx, filename in enumerate(other_data):
+                self.__add_entry_to_lookup(filename, idx + curr_idx)
+                curr_idx += 1
+            self._data += other_data
             return self
         except Exception as e:
             raise e
 
     def __sub__(self, other):
         try:
-            if not isinstance(other, Filelist):
-                other = Filelist(other)
-            return Filelist([fname for fname in self._data if fname not in other._data])
+            other_data = check_and_format_operand_input(other)
+            return Filelist([fname for fname in self._data if fname not in other_data])
         except Exception as e:
             raise e
 
-    def __isub__(self, other):
-        try:
-            if not isinstance(other, Filelist):
-                other = Filelist(other)
-            new_flist = self - other
-            self._data = new_flist.data
-            self._lookup_table = new_flist._lookup_table
-            return self
-        except Exception as e:
-            raise e
+    # def __isub__(self, other):
+    #     try:
+    #         other_data = check_and_format_operand_input(other)
+    #         new_flist = self - other
+    #         self._data = new_flist.data
+    #         self._lookup_table = new_flist._lookup_table
+    #         return self
+    #     except Exception as e:
+    #         raise e
 
     def __iter__(self):
-        return iter(self.data)
+        return iter(self.data)  # TODO: best practices for using self.data vs. self._data
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
+        if not isinstance(idx, (int, slice)):
+            raise TypeError(f"Don't do that")
         if isinstance(idx, int):
-            return self.data[idx]
-        return Filelist(self.data[idx])
+            return self.data[idx]  # TODO: catch idx out of range
+        if isinstance(idx, slice):
+            return Filelist(self.data[idx])
 
     def __str__(self):
         if self._data:
-            str_out = colored("printing filelist...", "blue")
+            # str_out = colored("printing filelist...", "blue")
             for fname in self.data:
-                str_out += "\n" + fname
+                str_out += colored("\n" + fname, "cyan")
             return str_out
         return "Empty Filelist"
 
-    def __sorted__(self):
-        return Filelist(self._data).sort()
+    # def __sorted__(self):
+    #     return Filelist(self._data).sort()
+
+    # def sort(self):
+    #     """
+    #     Sorts a filelist
+    #     """
+    #     self._data.sort()
+
+    def tolist(self):
+        """returns filelist as python list"""
+        return self.data
 
     def contains(self, filename):
         """
@@ -135,15 +199,32 @@ class Filelist:
         """
         if not isinstance(filename, str):
             raise TypeError("Invalid input: filename must be a string")
-        if filename[0] != "/":
-            filename = relative_to_abs(filename)
+        # if filename[0] != "/":
+        #     filename = relative_to_abs(filename)
         return filename in self._lookup_table
 
     def save(self, outfile="filelist.txt", relative=False, compressed=False):
         """
+        functionality:
+        `abs`: save outpaths as abspaths
+        `rel`: save outpaths as relpaths, relative to outfile unless otherwise specified
+        `nopath`: save outpaths with no context
+
         Writes a filelist to a txt file
+        outfile: the output filename
+        relative (resolve): whether or not to resolve the filepaths to originate from the outfile location
+            errors with no context
+            warns + converts to relpath with abspath
+            resolves with relpath
+        compressed (compress): whether or not to compress the outfile
         """
-        data = self._data.copy()
+        # check if relative
+        # normalize data
+        # save compressed/uncompressed
+        data = self._data.copy()  # necessary?
+
+        if self.is_abs():
+            pass
 
         if relative:
             data = abs_to_rel_list(data, os.path.dirname(outfile))
@@ -261,16 +342,6 @@ class Filelist:
         except Exception as e:
             raise e
 
-    def sort(self):
-        """
-        Sorts a filelist
-        """
-        self._data.sort()
-
-    def tolist(self):
-        """returns filelist as python list"""
-        return self.data
-
 
 def validate_user_inputs(data, exts, exists):
     """
@@ -295,7 +366,7 @@ def validate_data(data, exts, exists, check_exts):
         data = format_input(data)
         exts = {ext: None for ext in exts}
         if not data:
-            return {"data": [], "dict": {}}
+            return {"data": [], "dict": {}}  # should error instead?
         valid_data = []
         common_path = os.path.dirname(os.path.commonprefix(data))
         abs_common_path = os.path.abspath(os.path.join(os.getcwd(), common_path))
@@ -303,17 +374,16 @@ def validate_data(data, exts, exists, check_exts):
 
         for idx, filename in enumerate(data):
             if exists:
-                check_file_exists(filename)
+                check_file_exists(filename)  # should be try-catch
 
             if check_exts:
                 if os.path.splitext(filename)[1] not in exts:
                     raise TypeError(f"Bad file type: {filename}")
 
-            is_abs = filename[0] == "/"
-            if not is_abs:
+            if not filename[0] == "/":  # unexpected functionality -> input is intermixed abs + rel?
                 filename = abs_common_path + filename[len(common_path) :]
 
-            if filename not in lookup_dict:
+            if filename not in lookup_dict:  # internal without validation -> filename: [idx0, idx1, ...]
                 lookup_dict[filename] = idx
                 valid_data.append(filename)
 
@@ -328,25 +398,33 @@ def check_file_exists(fname):
         raise FileNotFoundError(f"File Not Found: {fname}")
 
 
-def format_input(data):
+def is_ok_operand_type(input):
     """
-    formats user input into acceptable filelist format
+    determines if the input is ok for operand types
     """
-    if isinstance(data, type(None)):  # empty Filelist?
-        return []
-    if isinstance(data, list):
-        return data
-    if isinstance(data, (set, tuple)):
-        return list(data)
-    if isinstance(data, Filelist):
-        return data.data
-    if isinstance(data, str):
-        if os.path.isfile(data):
-            return [os.path.abspath(data)]
-        if os.path.isdir(data):
-            return read_dir(data)
-        raise FileNotFoundError(f"File Not Found: {data}")
-    raise TypeError(f"Invalid input type: {type(data)}")
+    if not isinstance(input, (list, set, tuple, Filelist)):
+        return False
+    return True
+
+def check_and_format_operand_input(input_data):
+    """
+    formats user input for operand operations
+    """
+    if not is_ok_operand_type(input_data):
+        raise TypeError(f"Invalid input type: {type(input_data)}")
+
+    if isinstance(input_data, Filelist):
+        return Filelist.data
+
+    if isinstance(input_data, (list, set, tuple)):
+        return list(input_data)
+
+    # if isinstance(input_data, str):
+    #     try:
+    #         builder = Filelist(input_data)
+    #         return builder.data
+    #     except Exception as e:
+    #         raise e
 
 
 def read_dir(data):
@@ -404,6 +482,8 @@ def compress(data):
     data_zip += obj.flush()
     data_zip = zdict + b"\n" + data_zip
     return data_zip
+
+
 
 
 def abs_to_rel_list(data, start):
