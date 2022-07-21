@@ -65,7 +65,7 @@ class Filelist:
     def __build_internal(self, input_data):
         """builds the internals"""
         self._curr_commpfx = os.path.dirname(os.path.commonprefix(input_data))
-        if not self._curr_commpfx == "":
+        if not self._curr_commpfx == "":  # TODO: review
             self._abs_commpfx = os.path.abspath(self._curr_commpfx)
             self._rel_commpfx = os.path.relpath(self._curr_commpfx, start=os.getcwd())
         for filename in input_data:
@@ -87,20 +87,37 @@ class Filelist:
             if self._lookup_table[filename] == 0:
                 self._lookup_table.pop(filename)
 
-    def __truncate(self, filepath):
-        return filepath[len(self._curr_commpfx)+1 :]
+    def __truncate(self, filepath, prefix=None):
+        if prefix is None:
+            prefix = self._curr_commpfx
+        return filepath[len(prefix)+1 :]  # +1 for "/" TODO: broken if pfx ""?
 
-    def to_abs(self):  # Should work... probably
-        if self.is_abs():
-            return  # raise?
-        abs_flist = Filelist()
-        abs_flist._data = [
-            self._abs_commpfx + fname[self._curr_commpfx :] for fname in self._data
+    def to_abs(self):
+        if self.is_abs(): # TODO: return self
+            raise TypeError("Filelist is already absolute")
+        copy_flist = self.__copy_self()
+        copy_flist._change_curr_prefix(copy_flist._abs_commpfx)
+        return copy_flist
+
+    def to_rel(self):
+        if self.is_rel():  # TODO: return self?
+            raise TypeError("Filelist is already relative")
+        copy_flist = self.__copy_self()
+        copy_flist._change_curr_prefix(copy_flist._rel_commpfx)
+        return copy_flist
+
+    def __copy_self(self):
+        copy_flist = Empty()
+        copy_flist.__class__ = Filelist
+        copy_flist.__dict__ = self.__dict__.copy()
+        return copy_flist
+
+    def _change_curr_prefix(self, prefix):
+        self._data = [  # TODO: weird required input
+            prefix + fpath[len(self._curr_commpfx) :]
+            for fpath in self._data
         ]
-        abs_flist._curr_commpfx = self._abs_commpfx
-        abs_flist._abs_commpfx = self._abs_commpfx
-        abs_flist._rel_commpfx = self._rel_commpfx
-        return abs_flist
+        self._curr_commpfx = prefix
 
     @property
     def data(self):
@@ -115,38 +132,38 @@ class Filelist:
     def is_rel(self):
         return not self.is_abs()
 
-    def __add__(self, input_data):
-        try:
-            if isinstance(input_data, str):
-                raise TypeError(f"Cannot add a string to a Filelist")
-            if not isinstance(input_data, Filelist):
-                input_data = Filelist(input_data)
+    # def __add__(self, input_data):
+    #     try:
+    #         if isinstance(input_data, str):
+    #             raise TypeError(f"Cannot add a string to a Filelist")
+    #         if not isinstance(input_data, Filelist):
+    #             input_data = Filelist(input_data)
 
-            op1 = self.data if self.is_abs() else self.to_abs().data
-            op2 = input_data.data if input_data.is_abs() else input_data.to_abs().data
+    #         op1 = self.data if self.is_abs() else self.to_abs().data
+    #         op2 = input_data.data if input_data.is_abs() else input_data.to_abs().data
 
-            return Filelist(op1 + op2)
-        except Exception as e:
-            raise e
+    #         return Filelist(op1 + op2)
+    #     except Exception as e:
+    #         raise e
 
-    def __iadd__(self, other):
-        try:
-            other_data = check_and_format_operand_input(other)
-            curr_idx = len(self._data) - 1
-            for idx, filename in enumerate(other_data):
-                self.__add_entry_to_lookup(filename, idx + curr_idx)
-                curr_idx += 1
-            self._data += other_data
-            return self
-        except Exception as e:
-            raise e
+    # def __iadd__(self, other):
+    #     try:
+    #         other_data = check_and_format_operand_input(other)
+    #         curr_idx = len(self._data) - 1
+    #         for idx, filename in enumerate(other_data):
+    #             self.__add_entry_to_lookup(filename, idx + curr_idx)
+    #             curr_idx += 1
+    #         self._data += other_data
+    #         return self
+    #     except Exception as e:
+    #         raise e
 
-    def __sub__(self, other):
-        try:
-            other_data = check_and_format_operand_input(other)
-            return Filelist([fname for fname in self._data if fname not in other_data])
-        except Exception as e:
-            raise e
+    # def __sub__(self, other):
+    #     try:
+    #         other_data = check_and_format_operand_input(other)
+    #         return Filelist([fname for fname in self._data if fname not in other_data])
+    #     except Exception as e:
+    #         raise e
 
     # def __isub__(self, other):
     #     try:
@@ -176,12 +193,11 @@ class Filelist:
 
     def __str__(self):
         if self._data:
-            # str_out = colored("printing filelist...", "blue")
             str_out = ''
             for fname in self.data:
-                str_out += colored("\n" + fname, "cyan")
-            return str_out
-        return "Empty Filelist"
+                str_out += ("\n" + fname)
+            return colored(str_out, "cyan")
+        return colored("Empty Filelist", "red")
 
     # def __sorted__(self):
     #     return Filelist(self._data).sort()
@@ -202,9 +218,24 @@ class Filelist:
         """
         if not isinstance(filename, str):
             raise TypeError("Invalid input: filename must be a string")
-        # if filename[0] != "/":
-        #     filename = relative_to_abs(filename)
-        return filename in self._lookup_table
+
+        def check_abs_in():
+            return filename.startswith(self._abs_commpfx)
+
+        def check_rel_in():
+            return filename.startswith(self._rel_commpfx)
+        
+        if self.is_abs():
+            if check_abs_in():
+                return self.__truncate(filename) in self._lookup_table
+            if check_rel_in():
+                return self.__truncate(filename, self._rel_commpfx) in self._lookup_table
+        else:
+            if check_rel_in():
+                return self.__truncate(filename) in self._lookup_table
+            if check_abs_in():
+                return self.__truncate(filename, self._abs_commpfx) in self._lookup_table
+        return False
 
     def save(self, outfile="filelist.txt", relative=False, compressed=False):
         """
@@ -221,24 +252,42 @@ class Filelist:
             resolves with relpath
         compressed (compress): whether or not to compress the outfile
         """
-        # check if relative
-        # normalize data
-        # save compressed/uncompressed
-        data = self._data.copy()  # necessary?
+        out_data = self.normalize_paths('abs', outfile) if not relative else self.normalize_paths('rel', outfile)
 
-        if self.is_abs():
-            pass
-
-        if relative:
-            data = abs_to_rel_list(data, os.path.dirname(outfile))
         if compressed:
             with open(outfile, "wb") as f:
-                data = compress(self.data)
-                f.write(data)
-
+                out_data = compress(out_data)
+                f.write(out_data)
         else:
             with open(outfile, "w", encoding="utf-8") as f:
-                f.write(os.linesep.join(data))
+                f.write(os.linesep.join(out_data))
+
+    def normalize_paths(self, output_type, outfile):
+        """
+        normalize filepaths
+        output_type: abs or rel filepath
+        outfile: path to output file
+        """
+        # common_prefix = os.path.dirname(os.path.commonprefix(data))
+        # abs_common_prefix = os.path.abspath(common_prefix)
+        # rel_common_prefix = os.path.relpath(common_prefix, start=os.getcwd())
+
+        # is_abs = data[0][0] == "/"
+
+        if output_type == "abs":
+            # if absolute output, compute abs pfx, strip commpfx and strcat abspfx and truncated fpath
+            if self.is_abs():
+                return self._data  # not necessary but nice to insta return if abs to abs
+            return [self._abs_commpfx + fname[len(self._curr_commpfx) :] for fname in self._data]
+
+        # if rel output, compute rel pfx from deisred start location, strip commpfx, strcat relpfx and truncated fpath
+        if output_type == "rel":
+            out_pfx = os.path.relpath(
+                self._curr_commpfx,
+                start=os.path.dirname(outfile),
+            )
+            return [out_pfx + fname[len(self._curr_commpfx) :] for fname in self._data]
+        return self._data
 
     def view(self, relative=True):
         """Prints data"""
@@ -498,3 +547,7 @@ def abs_to_rel_list(data, start):
     common_path = os.path.dirname(os.path.commonprefix(data))
     rel_common_path = os.path.relpath(common_path, start=start)
     return [rel_common_path + fname[len(common_path) :] for fname in data]
+
+class Empty:
+    """Empty class used for copying a new Filelist"""
+    pass

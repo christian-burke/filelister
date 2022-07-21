@@ -25,6 +25,7 @@ my_flist = Filelist(
 
 # to abs
 def to_abs():  # my_flist is self
+    # TODO: if self.is_abs():
     copy_flist = Empty()
     copy_flist.__class__ = Filelist
     copy_flist.__dict__ = my_flist.__dict__.copy()
