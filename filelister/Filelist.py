@@ -29,14 +29,12 @@ class Filelist:
          - dev version for lightweight filelist ops
 
     """
+
     # flist = Filelist("...")
     # flist.validate()
 
-    def __init__(
-        self,
-        input_data=None
-    ):
-        self._curr_commpfx  # default common prefix (path)
+    def __init__(self, input_data=None):
+        self._curr_commpfx = ""  # default common prefix (path)
         self._abs_commpfx = ""  # absolute common prefix (path)
         self._rel_commpfx = ""  # relative common prefix (path)
 
@@ -87,16 +85,18 @@ class Filelist:
         else:
             self._lookup_table[filename] -= 1
             if self._lookup_table[filename] == 0:
-                self._lookup_table.remove(filename)
+                self._lookup_table.pop(filename)
 
     def __truncate(self, filepath):
-        return filepath[len(self._curr_commpfx) :]
+        return filepath[len(self._curr_commpfx)+1 :]
 
-    def to_abs(self): # Should work... probably
+    def to_abs(self):  # Should work... probably
         if self.is_abs():
-            return # raise?
+            return  # raise?
         abs_flist = Filelist()
-        abs_flist._data = [self._abs_commpfx + fname[self._curr_commpfx :] for fname in self._data]
+        abs_flist._data = [
+            self._abs_commpfx + fname[self._curr_commpfx :] for fname in self._data
+        ]
         abs_flist._curr_commpfx = self._abs_commpfx
         abs_flist._abs_commpfx = self._abs_commpfx
         abs_flist._rel_commpfx = self._rel_commpfx
@@ -121,7 +121,7 @@ class Filelist:
                 raise TypeError(f"Cannot add a string to a Filelist")
             if not isinstance(input_data, Filelist):
                 input_data = Filelist(input_data)
-            
+
             op1 = self.data if self.is_abs() else self.to_abs().data
             op2 = input_data.data if input_data.is_abs() else input_data.to_abs().data
 
@@ -159,7 +159,9 @@ class Filelist:
     #         raise e
 
     def __iter__(self):
-        return iter(self.data)  # TODO: best practices for using self.data vs. self._data
+        return iter(
+            self.data
+        )  # TODO: best practices for using self.data vs. self._data
 
     def __len__(self):
         return len(self.data)
@@ -175,6 +177,7 @@ class Filelist:
     def __str__(self):
         if self._data:
             # str_out = colored("printing filelist...", "blue")
+            str_out = ''
             for fname in self.data:
                 str_out += colored("\n" + fname, "cyan")
             return str_out
@@ -380,10 +383,14 @@ def validate_data(data, exts, exists, check_exts):
                 if os.path.splitext(filename)[1] not in exts:
                     raise TypeError(f"Bad file type: {filename}")
 
-            if not filename[0] == "/":  # unexpected functionality -> input is intermixed abs + rel?
+            if (
+                not filename[0] == "/"
+            ):  # unexpected functionality -> input is intermixed abs + rel?
                 filename = abs_common_path + filename[len(common_path) :]
 
-            if filename not in lookup_dict:  # internal without validation -> filename: [idx0, idx1, ...]
+            if (
+                filename not in lookup_dict
+            ):  # internal without validation -> filename: [idx0, idx1, ...]
                 lookup_dict[filename] = idx
                 valid_data.append(filename)
 
@@ -405,6 +412,7 @@ def is_ok_operand_type(input):
     if not isinstance(input, (list, set, tuple, Filelist)):
         return False
     return True
+
 
 def check_and_format_operand_input(input_data):
     """
@@ -482,8 +490,6 @@ def compress(data):
     data_zip += obj.flush()
     data_zip = zdict + b"\n" + data_zip
     return data_zip
-
-
 
 
 def abs_to_rel_list(data, start):
