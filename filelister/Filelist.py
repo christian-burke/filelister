@@ -38,7 +38,7 @@ class Filelist:
             raise TypeError(f"Invalid input type: {type(input_data)}")
 
         if isinstance(input_data, (list, set, tuple)):
-            self.__build_internal(input_data)
+            self.__build_internal(list(input_data))
 
         if isinstance(input_data, str):
             try:
