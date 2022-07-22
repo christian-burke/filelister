@@ -1,6 +1,7 @@
 """
 Class to handle Filelists
 """
+import inspect
 import os
 import zlib
 
@@ -31,6 +32,10 @@ class Filelist:
         self._data = []  # uncommon postfixes
         self._lookup_table = {}  # lookup table: uncommon postfix -> num occurrences
 
+        # get location of caller
+        # self._caller_loc = os.path.dirname(
+        #    inspect.currentframe().f_back.f_globals["__file__"]
+        # )
         if isinstance(input_data, Filelist):
             raise TypeError(f"{input_data} is already a Filelist")
 

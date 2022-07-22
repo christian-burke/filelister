@@ -37,7 +37,9 @@ def read_filelist(infile, check_exists=False, compressed=False, allowed_exts=Non
                 os.path.abspath(os.path.join(dirname, in_comm_pfx)),
                 start=os.getcwd(),
             )
-            data = [out_comm_pfx + fpath[len(in_comm_pfx) :] for fpath in data]
+            data = [
+                (out_comm_pfx + fpath[len(in_comm_pfx) :]).rstrip() for fpath in data
+            ]
         return Filelist(data)
 
     except Exception as e:
@@ -64,7 +66,7 @@ def read_uncompressed(infile):
     reads an uncompressed filelist
     """
     with open(infile, encoding="utf-8") as f:
-        return f.read().rstrip().split("\n")
+        return f.read().rstrip().split(os.linesep)
 
 
 def check_infile(infile):
