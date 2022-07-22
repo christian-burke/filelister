@@ -174,6 +174,21 @@ class TestUtils:
             ]
             assert saved_data == test_data
 
+    def test_save_rel_in_parent(self):
+        test_path = os.path.join(
+            os.getcwd(), os.path.dirname(__file__), "../test_filelist_rel_in_parent.txt"
+        )
+        flist = fs.Filelist(sample_data)
+        flist.save(test_path, relative=True)
+        with open(test_path, encoding="utf-8") as f:
+            saved_data = [
+                os.path.normpath(
+                    os.path.join(os.path.dirname(test_path), line.rstrip())
+                )
+                for line in f
+            ]
+            assert saved_data == test_data
+
     def test_read_filelist_abs(self):
         test_path = os.path.join(
             os.getcwd(), os.path.dirname(__file__), "filelists/test_filelist_abs.txt"
@@ -187,6 +202,15 @@ class TestUtils:
         )
         flist = fs.read_filelist(test_path)
         assert flist.data == rel_sample
+
+    def test_read_filelist_rel_in_parent(self):
+        test_path = os.path.join(
+            os.getcwd(), os.path.dirname(__file__), "../test_filelist_rel_in_parent.txt"
+        )
+        flist = fs.read_filelist(test_path)
+        flist = flist.to_abs()
+        assert flist.data == sample_data
+        os.remove(test_path)
 
     def test_contains_abs(self):
         flist = fs.Filelist(test_set)
@@ -209,6 +233,41 @@ class TestUtils:
         with pytest.raises(TypeError, match="Invalid input: filename must be a string"):
             flist.contains(1234)
         assert set(flist.data) == test_set
+
+    def test_iter(self):
+        flist = fs.Filelist(test_list)
+        i = 0
+        for fname in flist:
+            assert fname == test_list[i]
+            i += 1
+
+    def test_len(self):
+        flist = fs.Filelist(test_list)
+        assert len(flist) == 5
+
+    def test_idx(self):
+        flist = fs.Filelist(test_list)
+        assert flist[0] == test_list[0]
+        assert flist[:].data == test_list[:]
+        assert flist[-1] == test_list[-1]
+        assert flist[:-2].data == test_list[:-2]
+
+    def test_idx_out_of_range(self):
+        flist = fs.Filelist(test_list)
+        with pytest.raises(IndexError, match=r"index out of range"):
+            assert flist[6]
+
+    def test_to_list(self):
+        flist = fs.Filelist(test_list)
+        assert flist.to_list() == test_list
+
+    def test_str(self):
+        flist = fs.Filelist(test_list)
+        str(flist)
+
+    def test_repr(self):
+        flist = fs.Filelist(test_list)
+        repr(flist)
 
 
 class TestCompression:
