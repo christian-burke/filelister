@@ -3,12 +3,75 @@ Class to handle Filelists
 """
 import os
 import zlib
+from typing import (Dict, Generic, Iterator, List, Literal, Optional, Sequence,
+                    TypeVar, Union, overload)
 
 from termcolor import colored
 
+T_co = TypeVar("T_co", covariant=True)
+T = TypeVar("T")
 
-class Filelist:
+FsPath = Union[str, os.PathLike]
+FsPrefix = Literal["abs", "rel", "na"]
+FsSeq = Sequence[FsPath]
+FsLookup = Dict[FsPath, int]
+
+
+class FilelistLoader:
+    """Loader for Filelist data"""
+
+    def __init__(self, input_data: Sequence[T]):
+        self.data = list(input_data)
+
+    def __iter__(self):
+        for value in self.data:
+            yield value
+
+
+class FilelistData(Sequence[T]):
+    """Sequence containing Filelist data"""
+
+    def __init__(self):
+        self.data = []
+        self.lookup = {}
+
+    @overload
+    def __getitem__(self, index: int) -> T:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[T]:
+        ...
+
+    def __getitem__(self, index: Union[int, slice]) -> Union[T, Sequence[T]]:
+        if isinstance(index, int):
+            return self.data[index]
+        if isinstance(index, slice):
+            return Filelist(self.data[index])  # TODO: fix and optimize
+        raise TypeError(f"indices must be integers or slices, not {type(index)}")
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    def __iter__(self) -> Iterator[T]:
+        return iter(self.data)
+
+    def __contains__(self, value: T) -> bool:
+        return value in self.lookup
+
+    def __reversed__(self) -> Sequence[T]:
+        return self.data.reverse()
+
+    def count(self, value: T) -> int:
+        if value in self.lookup:
+            return self.lookup[value]
+        return 0
+
+
+class Filelist(Generic[T_co]):
     """
+    Args:
+        input_data (List
     Filelist class for creating, manipulating, comparing, and exporting filelists.
 
     # TODO: UPDATE DOCS
@@ -23,7 +86,11 @@ class Filelist:
          - dev version for lightweight filelist ops
     """
 
-    def __init__(self, input_data=None):
+    _curr_commpfx: FsPath
+    _abs_commpfx: FsPath
+    _rel_commpfx: FsPath
+
+    def __init__(self, input_data: Optional[List[str]] = None):
         self._curr_commpfx = ""  # default common prefix (path)
         self._abs_commpfx = ""  # absolute common prefix (path)
         self._rel_commpfx = ""  # relative common prefix (path)
@@ -55,12 +122,24 @@ class Filelist:
     def __build_internal(self, input_data):
         """builds the internals"""
         self._curr_commpfx = os.path.dirname(os.path.commonprefix(input_data))
-        if not self._curr_commpfx == "":  # TODO: review
+        if self._curr_commpfx != "":  # TODO: review
             self._abs_commpfx = os.path.abspath(self._curr_commpfx)
             self._rel_commpfx = os.path.relpath(self._curr_commpfx, start=os.getcwd())
-        for filename in input_data:
-            self._data.append(filename)
-            self.__add_entry_to_lookup(self.__truncate(filename))
+        loader = self.__loader(input_data)
+        # for filename in input_data:
+        #     self._data.append(filename)
+        #     self.__add_entry_to_lookup(self.__truncate(filename))
+
+    def __loader(self, input_data):
+        """loads and processes input data for storage"""
+        for value in input_data:
+            yield self.__get_abs_path(value), self.__get_rel_path(value)
+
+    def __get_abs_path(self, path):
+        return self._abs_commpfx + path[len(self._curr_commpfx) :]
+
+    def __get_rel_path(self, path):
+        return self._rel_commpfx + path[len(self._curr_commpfx) :]
 
     @property
     def data(self):
@@ -74,16 +153,15 @@ class Filelist:
             self.data
         )  # TODO: best practices for using self.data vs. self._data
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, idx):
-        if not isinstance(idx, (int, slice)):
-            raise TypeError(f"Don't do that")
-        if isinstance(idx, int):
-            return self.data[idx]  # TODO: catch idx out of range
+    def __getitem__(self, idx: Union[int, slice]) -> Union[FsPath, Sequence[FsPath]]:
+        if isinstance(idx, int):  # TODO: catch idx out of bounds
+            return self.data[idx]
         if isinstance(idx, slice):
             return Filelist(self.data[idx])
+        raise TypeError(f"indices must be integers or slices, not {type(idx)}")
 
     def __str__(self):
         if self._data:
@@ -143,7 +221,7 @@ class Filelist:
         ]
         self._curr_commpfx = prefix
 
-    def contains(self, filename):
+    def contains(self, filename: str) -> bool:
         """
         Returns True if the filelist contains a given filename.
         """
@@ -213,10 +291,7 @@ class Filelist:
                 return (
                     self._data
                 )  # not necessary but nice to insta return if abs to abs
-            return [
-                self._abs_commpfx + fname[len(self._curr_commpfx) :]
-                for fname in self._data
-            ]
+            return [self.__get_abs_path(fname) for fname in self._data]
 
         # if rel output, compute rel pfx from deisred start location, strip commpfx, strcat relpfx and truncated fpath
         if output_type == "rel":
