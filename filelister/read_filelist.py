@@ -5,7 +5,7 @@ functions to read filelists from text file and store in Filelist class
 import os
 import zlib
 
-from .Filelist import Filelist
+from Filelist import Filelist
 
 
 def process_data(dirname, fname):
@@ -28,22 +28,17 @@ def read_filelist(infile, check_exists=False, compressed=False, allowed_exts=Non
             data = read_compressed(infile)
         else:
             data = read_uncompressed(infile)
-
-        dirname = os.path.dirname(infile)
-        common_path = os.path.dirname(os.path.commonprefix(data))
-        abs_common_path = os.path.abspath(os.path.join(dirname, common_path))
-
-        def join_paths(fname):
-            if fname[0] == "/":
-                return fname
-            return abs_common_path + fname[len(common_path) :]
-
-        data = [join_paths(fname).rstrip() for fname in data]
-        return Filelist(
-            data,
-            allowed_exts=allowed_exts,
-            check_exists=check_exists,
-        )
+        if data[0][0] == "/":
+            data = [fpath.rstrip() for fpath in data]
+        else:
+            dirname = os.path.dirname(infile)
+            in_comm_pfx = os.path.dirname(os.path.commonprefix(data))
+            out_comm_pfx = os.path.relpath(
+                os.path.abspath(os.path.join(dirname, in_comm_pfx)),
+                start=os.getcwd(),
+            )
+            data = [out_comm_pfx + fpath[len(in_comm_pfx) :] for fpath in data]
+        return Filelist(data)
 
     except Exception as e:
         raise e
