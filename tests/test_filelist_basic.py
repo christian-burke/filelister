@@ -59,7 +59,6 @@ class CreateFromType:
 
 
 class TestUtils:
-
     def test_save_abs(self):
         test_path = os.path.join(
             os.getcwd(), os.path.dirname(__file__), "filelists/test_filelist_abs.txt"

@@ -5,7 +5,7 @@ functions to read filelists from text file and store in Filelist class
 import os
 import zlib
 
-from Filelist import Filelist
+from .Filelist import Filelist
 
 
 def process_data(dirname, fname):

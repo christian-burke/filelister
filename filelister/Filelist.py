@@ -87,9 +87,9 @@ class Filelist:
 
     def __str__(self):
         if self._data:
-            str_out = ''
+            str_out = ""
             for fname in self.data:
-                str_out += ("\n" + fname)
+                str_out += "\n" + fname
             return colored(str_out, "cyan")
         return colored("Empty Filelist", "red")
 
@@ -107,7 +107,7 @@ class Filelist:
         return not self.is_abs()
 
     def to_abs(self):
-        if self.is_abs(): # TODO: return self
+        if self.is_abs():  # TODO: return self
             raise TypeError("Filelist is already absolute")
         copy_flist = self.__copy_self()
         copy_flist._change_curr_prefix(copy_flist._abs_commpfx)
@@ -129,7 +129,7 @@ class Filelist:
     def __truncate(self, filepath, prefix=None):
         if prefix is None:
             prefix = self._curr_commpfx
-        return filepath[len(prefix)+1 :]  # +1 for "/" TODO: broken if pfx ""?
+        return filepath[len(prefix) + 1 :]  # +1 for "/" TODO: broken if pfx ""?
 
     def __copy_self(self):
         copy_flist = Empty()
@@ -139,8 +139,7 @@ class Filelist:
 
     def _change_curr_prefix(self, prefix):
         self._data = [  # TODO: weird required input
-            prefix + fpath[len(self._curr_commpfx) :]
-            for fpath in self._data
+            prefix + fpath[len(self._curr_commpfx) :] for fpath in self._data
         ]
         self._curr_commpfx = prefix
 
@@ -156,17 +155,21 @@ class Filelist:
 
         def check_rel_in():
             return filename.startswith(self._rel_commpfx)
-        
+
         if self.is_abs():
             if check_abs_in():
                 return self.__truncate(filename) in self._lookup_table
             if check_rel_in():
-                return self.__truncate(filename, self._rel_commpfx) in self._lookup_table
+                return (
+                    self.__truncate(filename, self._rel_commpfx) in self._lookup_table
+                )
         else:
             if check_rel_in():
                 return self.__truncate(filename) in self._lookup_table
             if check_abs_in():
-                return self.__truncate(filename, self._abs_commpfx) in self._lookup_table
+                return (
+                    self.__truncate(filename, self._abs_commpfx) in self._lookup_table
+                )
         return False
 
     def save(self, outfile="filelist.txt", relative=False, compressed=False):
@@ -184,7 +187,11 @@ class Filelist:
             resolves with relpath
         compressed (compress): whether or not to compress the outfile
         """
-        out_data = self.normalize_paths('abs', outfile) if not relative else self.normalize_paths('rel', outfile)
+        out_data = (
+            self.normalize_paths("abs", outfile)
+            if not relative
+            else self.normalize_paths("rel", outfile)
+        )
 
         if compressed:
             with open(outfile, "wb") as f:
@@ -203,8 +210,13 @@ class Filelist:
         if output_type == "abs":
             # if absolute output, compute abs pfx, strip commpfx and strcat abspfx and truncated fpath
             if self.is_abs():
-                return self._data  # not necessary but nice to insta return if abs to abs
-            return [self._abs_commpfx + fname[len(self._curr_commpfx) :] for fname in self._data]
+                return (
+                    self._data
+                )  # not necessary but nice to insta return if abs to abs
+            return [
+                self._abs_commpfx + fname[len(self._curr_commpfx) :]
+                for fname in self._data
+            ]
 
         # if rel output, compute rel pfx from deisred start location, strip commpfx, strcat relpfx and truncated fpath
         if output_type == "rel":
@@ -214,7 +226,7 @@ class Filelist:
             )
             return [out_pfx + fname[len(self._curr_commpfx) :] for fname in self._data]
         # return self._data
-    
+
     def compress(self, data):
         """
         compresses a filelist to be written to a text file
@@ -230,4 +242,5 @@ class Filelist:
 
 class Empty:
     """Empty class used for copying a new Filelist"""
+
     pass
