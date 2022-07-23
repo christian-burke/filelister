@@ -8,7 +8,9 @@ class DataStorage:
     """Class to store Filelist data"""
 
     def __init__(self, loader):
-        self.paths = []
+        # self.paths = [[], []]  TODO: evaluate tradeoffs (np)
+        self.abs_paths = []
+        self.rel_paths = []
         self.lookup = {}
         self.curr_idx = 0
 
@@ -16,26 +18,37 @@ class DataStorage:
             if abs_path in self.lookup or rel_path in self.lookup:
                 print(colored("WARN: Path is already stored. Skipping.", "red"))
                 continue
+
             abs_ptr = c_wchar_p(abs_path)
             rel_ptr = c_wchar_p(rel_path)
-            self.paths.append((abs_ptr, rel_ptr))
-            self.lookup[abs_path] = (abs_ptr, len(self.paths) - 1)
-            self.lookup[rel_path] = (rel_ptr, len(self.paths) - 1)
+
+            self.abs_paths.append(abs_ptr)
+            self.rel_paths.append(rel_ptr)
+
+            self.lookup[abs_path] = (abs_ptr, len(self.abs_paths) - 1)
+            self.lookup[rel_path] = (rel_ptr, len(self.abs_paths) - 1)
+
+        assert len(self.abs_paths) == len(self.rel_paths)
 
     def __len__(self):
-        return len(self.paths)
+        return len(self.abs_paths)
 
     def __getitem__(self, key):
         if isinstance(key, int):
             return self.__unpack_ptr_values(key)
         if isinstance(key, slice):
-            start, stop, step = key.indices(len(self.paths))
-            return [self.__unpack_ptr_values(idx) for idx in range(start, stop, step)]
+            start, stop, step = key.indices(len(self.abs_paths))
+            ret_abs = []
+            ret_rel = []
+            for idx in range(start, stop, step):
+                abs_path, rel_path = self.__unpack_ptr_values(idx)
+                ret_abs.append(abs_path)
+                ret_rel.append(rel_path)
+            return ret_abs, ret_rel
         raise TypeError(f"indices must be integers or slices, not {type(key)}")
 
     def __unpack_ptr_values(self, index):
-        abs_ptr, rel_ptr = self.paths[index]
-        return abs_ptr.value, rel_ptr.value
+        return self.abs_paths[index].value, self.rel_paths[index].value
 
     def __contains__(self, value):
         return value in self.lookup

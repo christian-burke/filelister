@@ -12,6 +12,9 @@ test_data = [
     ("/home/christian/dir/filename_05.jpg", "./dir/filename_05.jpg"),
 ]
 
+abs_test_data = [item[0] for item in test_data]
+rel_test_data = [item[1] for item in test_data]
+
 
 def generator(data):
     for value in data:
@@ -30,9 +33,8 @@ class TestDataStorage:
 
     def test_initialize_paths(self):
         storage = fs.DataStorage(generator(test_data))
-        for path in storage.paths:
-            for path_type in path:
-                assert isinstance(path_type, c_wchar_p)
+        for path in storage.abs_paths + storage.rel_paths:
+            assert isinstance(path, c_wchar_p)
 
     def test_initialize_lookup(self):
         storage = fs.DataStorage(generator(test_data))
@@ -71,36 +73,51 @@ class TestDataStorage:
 
     def test_getitem_by_slice_start(self):
         storage = fs.DataStorage(generator(test_data))
-        assert storage[2:] == test_data[2:]
-        assert storage[-2:] == test_data[-2:]
+        assert storage[2:][0] == abs_test_data[2:]
+        assert storage[2:][1] == rel_test_data[2:]
+        assert storage[-2:][0] == abs_test_data[-2:]
+        assert storage[-2:][1] == rel_test_data[-2:]
 
     def test_getitem_by_slice_start_stop(self):
         storage = fs.DataStorage(generator(test_data))
-        assert storage[1:3] == test_data[1:3]
-        assert storage[-1:3] == test_data[-1:3]
-        assert storage[-3:-1] == test_data[-3:-1]
+        assert storage[1:3][0] == abs_test_data[1:3]
+        assert storage[1:3][1] == rel_test_data[1:3]
+        assert storage[-1:3][0] == abs_test_data[-1:3]
+        assert storage[-1:3][1] == rel_test_data[-1:3]
+        assert storage[-3:-1][0] == abs_test_data[-3:-1]
+        assert storage[-3:-1][1] == rel_test_data[-3:-1]
 
     def test_getitem_by_slice_start_stop_step(self):
         storage = fs.DataStorage(generator(test_data))
-        assert storage[1:4:2] == test_data[1:4:2]
-        assert storage[-1:4:2] == test_data[-1:4:2]
-        assert storage[1:4:-2] == test_data[1:4:-2]
-        assert storage[-1:-4:-2] == test_data[-1:-4:-2]
+        assert storage[1:4:2][0] == abs_test_data[1:4:2]
+        assert storage[1:4:2][1] == rel_test_data[1:4:2]
+        assert storage[-1:4:2][0] == abs_test_data[-1:4:2]
+        assert storage[-1:4:2][1] == rel_test_data[-1:4:2]
+        assert storage[1:4:-2][0] == abs_test_data[1:4:-2]
+        assert storage[1:4:-2][1] == rel_test_data[1:4:-2]
+        assert storage[-1:-4:-2][0] == abs_test_data[-1:-4:-2]
+        assert storage[-1:-4:-2][1] == rel_test_data[-1:-4:-2]
 
     def test_getitem_by_slice_stop(self):
         storage = fs.DataStorage(generator(test_data))
-        assert storage[:2] == test_data[:2]
-        assert storage[:-2] == test_data[:-2]
+        assert storage[:2][0] == abs_test_data[:2]
+        assert storage[:2][1] == rel_test_data[:2]
+        assert storage[:-2][0] == abs_test_data[:-2]
+        assert storage[:-2][1] == rel_test_data[:-2]
 
     def test_getitem_by_slice_stop_step(self):
         storage = fs.DataStorage(generator(test_data))
-        assert storage[:4:2] == test_data[:4:2]
-        assert storage[:4:-2] == test_data[:4:-2]
+        assert storage[:4:2][0] == abs_test_data[:4:2]
+        assert storage[:4:2][1] == rel_test_data[:4:2]
+        assert storage[:4:-2][0] == abs_test_data[:4:-2]
+        assert storage[:4:-2][1] == rel_test_data[:4:-2]
 
     def test_getitem_by_slice_step(self):
         storage = fs.DataStorage(generator(test_data))
-        assert storage[::2] == test_data[::2]
-        assert storage[::-2] == test_data[::-2]
+        assert storage[::2][0] == abs_test_data[::2]
+        assert storage[::2][1] == rel_test_data[::2]
+        assert storage[::-2][0] == abs_test_data[::-2]
+        assert storage[::-2][1] == rel_test_data[::-2]
 
     def test_getitem_throws_typeerror(self):
         storage = fs.DataStorage(generator(test_data))
