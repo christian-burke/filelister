@@ -1,273 +1,257 @@
 """Tests for Filelist"""
 import os
+from pathlib import Path
 
 import filelister as fs
 import pytest
 
-_this_path = os.path.abspath(os.path.dirname(__file__))
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "tmp_dir")
 
 
-def rel_to_abs(path):
-    return os.path.abspath(os.path.join(os.getcwd(), _this_path, path))
+def rel_to_abs(tmp_path, path):
+    return os.path.abspath(os.path.join(tmp_path, path))
 
 
-def normalize_rel_path(path):
-    return os.path.relpath(os.path.join(_this_path, path), start=os.getcwd())
+def normalize_rel_path(tmp_dir, path):
+    return os.path.relpath(os.path.join(tmp_dir, path), start=os.getcwd())
 
 
-sample_data = ["data/sample_01.txt", "data/sample_02.txt", "data/sample_03.txt"]
-sample_data = [rel_to_abs(path) for path in sample_data]
-sample_data2 = ["data/sample_03.txt", "data/sample_04.txt", "data/sample_05.txt"]
-sample_data2 = [rel_to_abs(path) for path in sample_data2]
-rel_sample = [normalize_rel_path(path) for path in sample_data]
-rel_sample2 = [normalize_rel_path(path) for path in sample_data2]
+@pytest.fixture(scope="session")
+def tmp_dir(tmp_path_factory):
+    data_dir = tmp_path_factory.mktemp("data")
+    flist_dir = tmp_path_factory.mktemp("filelists")
+    for i in range(1, 6):
+        with open(str(data_dir) + f"/sample_0{i}.txt", "w") as f:
+            f.write("")
+    return {"data": data_dir, "flists": flist_dir}
 
-test_data2 = [os.path.abspath(test) for test in sample_data2]
-test_data = [os.path.abspath(test) for test in sample_data]
-test_set = set(test_data).union(set(test_data2))
-test_list = test_data + test_data2[1:]
-test_list_rel = rel_sample + rel_sample2[1:]
-test_no_context = ["sample_01.txt", "sample_02.txt", "sample_03.txt"]
-test_no_context_abs = [rel_to_abs(fpath) for fpath in test_no_context]
-test_nested_data = [
-    "data/sample_01.txt",
-    "data/moredata/sample_02.txt",
-    "data/moredata/deeper/sample_03.txt",
-]
-test_nested_data_rel = [normalize_rel_path(fpath) for fpath in test_nested_data]
-test_nested_data_abs = [rel_to_abs(fpath) for fpath in test_nested_data]
 
-data_rel = normalize_rel_path("data")
-data_abs = rel_to_abs("data")
+@pytest.fixture(scope="session")
+def data_rel(tmp_dir):
+    rel_data = [
+        os.path.relpath(os.path.join(tmp_dir["data"], "sample_01.txt")),
+        os.path.relpath(os.path.join(tmp_dir["data"], "sample_02.txt")),
+        os.path.relpath(os.path.join(tmp_dir["data"], "sample_03.txt")),
+        os.path.relpath(os.path.join(tmp_dir["data"], "sample_04.txt")),
+        os.path.relpath(os.path.join(tmp_dir["data"], "sample_05.txt")),
+    ]
+    return [os.path.relpath(path) for path in rel_data]
+
+
+@pytest.fixture(scope="session")
+def data_abs(tmp_dir):
+    return [
+        os.path.abspath(os.path.join(tmp_dir["data"], "sample_01.txt")),
+        os.path.abspath(os.path.join(tmp_dir["data"], "sample_02.txt")),
+        os.path.abspath(os.path.join(tmp_dir["data"], "sample_03.txt")),
+        os.path.abspath(os.path.join(tmp_dir["data"], "sample_04.txt")),
+        os.path.abspath(os.path.join(tmp_dir["data"], "sample_05.txt")),
+    ]
+
+
+@pytest.fixture(scope="session")
+def data_pfx(tmp_dir):
+    return {
+        "rel": os.path.relpath(tmp_dir["data"]),
+        "abs": os.path.abspath(tmp_dir["data"]),
+    }
+
+
+@pytest.fixture(scope="session")
+def data_no_ctx(tmp_dir):
+    return ["sample_data_01.txt", "sample_data_02.txt", "sample_data_03.txt"]
 
 
 class TestCreateFromType:
-    def test_filelist_create_from_abs_list(self):
-        flist = fs.Filelist(sample_data)
-        assert set(flist.to_list()) == set(test_data)
-        assert flist._prefixes["curr"] == data_abs
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_abs_list(self, tmp_dir, data_abs, data_pfx):
+        flist = fs.Filelist(data_abs)
+        assert flist.to_list() == data_abs
+        assert flist._prefixes["curr"] == data_pfx["abs"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_filelist_create_from_rel_list(self):
-        flist = fs.Filelist(rel_sample)
-        assert flist.to_list() == rel_sample
-        assert flist._prefixes["curr"] == data_rel
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_rel_list(self, tmp_dir, data_rel, data_pfx):
+        flist = fs.Filelist(data_rel)
+        assert flist.to_list() == data_rel
+        assert flist._prefixes["curr"] == data_pfx["rel"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_filelist_create_from_abs_set(self):
-        flist = fs.Filelist(set(test_data))
-        assert set(flist.to_list()) == set(test_data)
-        assert flist._prefixes["curr"] == data_abs
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_abs_set(self, tmp_dir, data_abs, data_pfx):
+        flist = fs.Filelist(set(data_abs))
+        assert set(flist.to_list()) == set(data_abs)
+        assert flist._prefixes["curr"] == data_pfx["abs"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_filelist_create_from_rel_set(self):
-        flist = fs.Filelist(set(test_list_rel))
-        assert set(flist.to_list()) == set(test_list_rel)
-        assert flist._prefixes["curr"] == data_rel
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_rel_set(self, tmp_dir, data_rel, data_pfx):
+        flist = fs.Filelist(set(data_rel))
+        assert set(flist.to_list()) == set(data_rel)
+        assert flist._prefixes["curr"] == data_pfx["rel"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_filelist_create_from_abs_dir(self):
-        flist = fs.Filelist(rel_to_abs("data"))
-        assert set(flist.to_list()) == set(test_list)
-        assert flist._prefixes["curr"] == data_abs
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_abs_dir(self, tmp_dir, data_abs, data_pfx):
+        flist = fs.Filelist(os.path.abspath(tmp_dir["data"]))
+        assert set(flist.to_list()) == set(data_abs)
+        assert flist._prefixes["curr"] == data_pfx["abs"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_filelist_create_from_rel_dir(self):
-        flist = fs.Filelist(normalize_rel_path("data"))
-        assert set(flist.to_list()) == set(test_list_rel)
-        assert flist._prefixes["curr"] == data_rel
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_rel_dir(self, tmp_dir, data_rel, data_pfx):
+        flist = fs.Filelist(os.path.relpath(tmp_dir["data"]))
+        assert set(flist.to_list()) == set(data_rel)
+        assert flist._prefixes["curr"] == data_pfx["rel"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_filelist_create_from_abs_tuple(self):
-        flist = fs.Filelist(tuple(sample_data))
-        assert set(flist.to_list()) == set(test_data)
-        assert flist._prefixes["curr"] == data_abs
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_abs_tuple(self, tmp_dir, data_abs, data_pfx):
+        flist = fs.Filelist(tuple(data_abs))
+        assert flist.to_list() == data_abs
+        assert flist._prefixes["curr"] == data_pfx["abs"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_filelist_create_from_rel_tuple(self):
-        flist = fs.Filelist(tuple(rel_sample))
-        assert flist.to_list() == rel_sample
-        assert flist._prefixes["curr"] == data_rel
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_filelist_create_from_rel_tuple(self, tmp_dir, data_rel, data_pfx):
+        flist = fs.Filelist(tuple(data_rel))
+        assert flist.to_list() == data_rel
+        assert flist._prefixes["curr"] == data_pfx["rel"]
+        assert flist._prefixes["abs"] == data_pfx["abs"]
+        assert flist._prefixes["rel"] == data_pfx["rel"]
 
-    def test_create_with_no_context(self):
-        flist = fs.Filelist(test_no_context)
-        assert flist.to_list() == test_no_context
-        assert flist._prefixes["curr"] == normalize_rel_path("")
-        assert flist._prefixes["abs"] == rel_to_abs("")
-        assert flist._prefixes["rel"] == normalize_rel_path("")
-
-    def test_create_nested_rel(self):
-        flist = fs.Filelist(test_nested_data_rel)
-        t = os.path.commonprefix(test_nested_data_rel)
-        assert flist.to_list() == test_nested_data_rel
-        assert flist._prefixes["curr"] == data_rel
-        assert flist._prefixes["abs"] == data_abs
-        assert flist._prefixes["rel"] == data_rel
+    def test_create_with_no_context(self, tmp_dir, data_no_ctx):
+        flist = fs.Filelist(data_no_ctx)
+        assert flist.to_list() == [os.path.relpath(fname) for fname in data_no_ctx]
+        assert flist._prefixes["curr"] == os.path.relpath(".")
+        assert flist._prefixes["abs"] == os.path.abspath(".")
+        assert flist._prefixes["rel"] == os.path.relpath(".")
 
 
 class TestConversions:
-    def test_abs_to_rel(self):
-        flist = fs.Filelist(test_list)
+    def test_abs_to_rel(self, tmp_dir, data_abs, data_rel, data_pfx):
+        flist = fs.Filelist(data_abs)
         rel_flist = flist.to_rel()
-        assert rel_flist.to_list() == test_list_rel
-        assert rel_flist._prefixes["curr"] == data_rel
+        assert rel_flist.to_list() == data_rel
+        assert rel_flist._prefixes["curr"] == data_pfx["rel"]
 
-    def test_abs_to_rel_nested(self):
-        flist = fs.Filelist(test_nested_data_abs)
-        rel_flist = flist.to_rel()
-        assert rel_flist.to_list() == test_nested_data_rel
-        assert rel_flist._prefixes["curr"] == data_rel
+    def test_rel_to_abs(self, tmp_dir, data_abs, data_rel, data_pfx):
+        flist = fs.Filelist(data_rel)
+        rel_flist = flist.to_abs()
+        assert rel_flist.to_list() == data_abs
+        assert rel_flist._prefixes["curr"] == data_pfx["abs"]
 
-    def test_rel_to_abs(self):
-        flist = fs.Filelist(test_list_rel)
+    def test_abs_to_abs_returns_self(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
+        assert flist.to_abs() is flist
+
+    def test_rel_to_rel_returns_self(self, tmp_dir, data_rel):
+        flist = fs.Filelist(data_rel)
+        assert flist.to_rel() is flist
+
+    def test_no_context_to_abs(self, tmp_dir, data_no_ctx):
+        flist = fs.Filelist(data_no_ctx)
         abs_flist = flist.to_abs()
-        assert abs_flist.to_list() == test_list
-        assert abs_flist._prefixes["curr"] == data_abs
-
-    def test_abs_to_abs_raises(self):
-        flist = fs.Filelist(test_list)
-        with pytest.raises(TypeError, match=r"Filelist is already absolute*"):
-            flist.to_abs()
-
-    def test_rel_to_rel_raises(self):
-        flist = fs.Filelist(test_list_rel)
-        with pytest.raises(TypeError, match=r"Filelist is already relative*"):
-            flist.to_rel()
-
-    def test_no_context_to_abs(self):
-        flist = fs.Filelist(test_no_context)
-        abs_flist = flist.to_abs()
-        assert abs_flist.to_list() == test_no_context_abs
+        assert abs_flist.to_list() == [os.path.abspath(fname) for fname in data_no_ctx]
 
 
 class TestUtils:
-    def test_save_abs(self):
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/test_filelist_abs.txt"
-        )
-        flist = fs.Filelist(sample_data)
+    def test_save_abs(self, tmp_dir, data_abs):
+        test_path = os.path.join(tmp_dir["flists"], "abs_filelist.txt")
+        flist = fs.Filelist(data_abs)
         flist.save(test_path)
         with open(test_path, encoding="utf-8") as f:
             saved_data = [line.rstrip() for line in f]
-            assert saved_data == test_data
+            assert saved_data == data_abs
 
-    def test_save_rel(self):
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/test_filelist_rel.txt"
-        )
-        flist = fs.Filelist(sample_data)
-        flist.save(test_path, relative=True)
+    def test_save_rel(self, tmp_dir, data_rel):
+        test_path = os.path.join(tmp_dir["flists"], "rel_filelist.txt")
+        flist = fs.Filelist(data_rel)
+        flist.save(test_path)
         with open(test_path, encoding="utf-8") as f:
-            saved_data = [
-                os.path.normpath(
-                    os.path.join(os.path.dirname(test_path), line.rstrip())
-                )
-                for line in f
-            ]
-            assert saved_data == test_data
+            saved_data = [os.path.relpath(os.path.join(tmp_dir["flists"], line.rstrip())) for line in f]
+            assert saved_data == data_rel
 
-    def test_save_rel_in_parent(self):
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "../test_filelist_rel_in_parent.txt"
-        )
-        flist = fs.Filelist(sample_data)
-        flist.save(test_path, relative=True)
-        with open(test_path, encoding="utf-8") as f:
-            saved_data = [
-                os.path.normpath(
-                    os.path.join(os.path.dirname(test_path), line.rstrip())
-                )
-                for line in f
-            ]
-            assert saved_data == test_data
-
-    def test_read_filelist_abs(self):
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/test_filelist_abs.txt"
-        )
+    def test_read_filelist_abs(self, tmp_dir, data_abs):  # depends on test_save_abs
+        test_path = os.path.join(tmp_dir["flists"], "abs_filelist.txt")
         flist = fs.read_filelist(test_path)
-        assert flist.to_list() == test_data
+        assert flist.to_list() == data_abs
 
-    def test_read_filelist_rel(self):
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/test_filelist_rel.txt"
-        )
+    def test_read_filelist_rel(self, tmp_dir, data_rel):
+        test_path = os.path.join(tmp_dir["flists"], "rel_filelist.txt")
         flist = fs.read_filelist(test_path)
-        assert flist.to_list() == rel_sample
+        assert flist.to_list() == data_rel
 
-    def test_read_filelist_rel_in_parent(self):
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "../test_filelist_rel_in_parent.txt"
-        )
-        flist = fs.read_filelist(test_path)
-        flist = flist.to_abs()
-        assert flist.to_list() == sample_data
-        os.remove(test_path)
+    def test_abs_contains_abs(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
+        assert flist.contains(data_abs[1]) is True
 
-    def test_contains_abs(self):
-        flist = fs.Filelist(test_set)
-        assert flist.contains(sample_data[0]) is True
-
-    def test_not_contains_abs(self):
-        flist = fs.Filelist(test_set)
+    def test_abs_not_contains_abs(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
         assert flist.contains("/not_a_file") is False
 
-    def test_contains_rel(self):
-        flist = fs.Filelist(test_set)
-        assert flist.contains(rel_sample[0]) is True
+    def test_abs_contains_rel(self, tmp_dir, data_abs, data_rel):
+        flist = fs.Filelist(data_abs)
+        assert flist.contains(data_rel[2]) is True
 
-    def test_not_contains_rel(self):
-        flist = fs.Filelist(test_set)
+    def test_abs_not_contains_rel(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
         assert flist.contains("not_a_file") is False
 
-    def test_contains_throws_typeerror(self):
-        flist = fs.Filelist(test_set)
+    def test_rel_contains_abs(self, tmp_dir, data_abs, data_rel):
+        flist = fs.Filelist(data_rel)
+        assert flist.contains(data_abs[1]) is True
+
+    def test_rel_not_contains_abs(self, tmp_dir, data_rel):
+        flist = fs.Filelist(data_rel)
+        assert flist.contains("/not_a_file") is False
+
+    def test_rel_contains_rel(self, tmp_dir, data_rel):
+        flist = fs.Filelist(data_rel)
+        assert flist.contains(data_rel[2]) is True
+
+    def test_rel_not_contains_rel(self, tmp_dir, data_rel):
+        flist = fs.Filelist(data_rel)
+        assert flist.contains("not_a_file") is False
+
+    def test_contains_throws_typeerror(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
         with pytest.raises(TypeError, match="Invalid input: filename must be a string"):
             flist.contains(1234)
-        assert set(flist.to_list()) == test_set
+        assert flist.to_list() == data_abs
 
-    def test_iter(self):
-        flist = fs.Filelist(test_list)
+    def test_iter(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
         i = 0
         for fname in flist:
-            assert fname == test_list[i]
+            assert fname == data_abs[i]
             i += 1
 
-    def test_len(self):
-        flist = fs.Filelist(test_list)
+    def test_len(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
         assert len(flist) == 5
 
-    def test_idx(self):
-        flist = fs.Filelist(test_list)
-        assert flist[0] == test_list[0]
-        assert flist[:].data == test_list[:]
-        assert flist[-1] == test_list[-1]
-        assert flist[:-2].data == test_list[:-2]
+    def test_idx(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
+        assert flist[0] == data_abs[0]
+        assert flist[:] == data_abs[:]
+        assert flist[-1] == data_abs[-1]
+        assert flist[:-2] == data_abs[:-2]
 
-    def test_idx_out_of_range(self):
-        flist = fs.Filelist(test_list)
+    def test_idx_out_of_range(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
         with pytest.raises(IndexError, match=r"index out of range"):
             assert flist[6]
 
-    def test_to_list(self):
-        flist = fs.Filelist(test_list)
-        assert flist.to_list() == test_list
+    def test_to_list(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
+        assert flist.to_list() == data_abs
 
-    def test_str(self):
-        flist = fs.Filelist(test_list)
+    def test_str_does_not_error(self, tmp_dir, data_abs):
+        flist = fs.Filelist(data_abs)
         str(flist)
 
-    def test_repr(self):
-        flist = fs.Filelist(test_list)
+    def test_repr_does_not_error(self, tmp_dir, data_rel):
+        flist = fs.Filelist(data_rel)
         repr(flist)
 
 
@@ -276,60 +260,46 @@ class TestCompression:
     tests for reading and writing compressed filelists
     """
 
-    def test_save_abs_compressed(self):
+    def test_save_abs_compressed(self, tmp_dir, data_abs):
         """
         tests ability to save a compressed absolute filelist
         """
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/compressed_abs.txt"
-        )
-        flist = fs.Filelist(sample_data)
-        flist.save(test_path, relative=False, compressed=True)
+        test_path = os.path.join(tmp_dir["flists"], "compressed_abs.zz")
+        flist = fs.Filelist(data_abs)
+        flist.save(test_path, compressed=True)
         compressed_size = os.stat(test_path).st_size
         uncompressed_size = os.stat(
-            os.path.join(
-                os.getcwd(),
-                os.path.dirname(__file__),
-                "filelists/test_filelist_abs.txt",
-            )
+            os.path.join(tmp_dir["flists"], "abs_filelist.txt")
         ).st_size
         assert compressed_size < uncompressed_size
 
-    def test_read_abs_compressed(self):
+    def test_read_abs_compressed(
+        self, tmp_dir, data_abs
+    ):  # depends on save_abs_compressed
         """
         tests ability to read compressed absolute filelist
         """
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/compressed_abs.txt"
-        )
-        flist = fs.read_filelist(test_path, check_exists=True, compressed=True)
-        assert flist.to_list() == test_data
+        test_path = os.path.join(tmp_dir["flists"], "compressed_abs.zz")
+        flist = fs.read_filelist(test_path, compressed=True)
+        assert flist.to_list() == data_abs
 
-    def test_save_rel_compressed(self):
+    def test_save_rel_compressed(self, tmp_dir, data_rel):
         """
         tests ability to save a compressed absolute filelist
         """
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/compressed_rel.zz"
-        )
-        flist = fs.Filelist(test_list)
-        flist.save(test_path, relative=True, compressed=True)
+        test_path = os.path.join(tmp_dir["flists"], "compressed_rel.zz")
+        flist = fs.Filelist(data_rel)
+        flist.save(test_path, compressed=True)
         compressed_size = os.stat(test_path).st_size
         uncompressed_size = os.stat(
-            os.path.join(
-                os.getcwd(),
-                os.path.dirname(__file__),
-                "filelists/full_filelist_rel.txt",
-            )
+            os.path.join(tmp_dir["flists"], "rel_filelist.txt")
         ).st_size
         assert 0 < compressed_size < uncompressed_size
 
-    def test_read_rel_compressed(self):
+    def test_read_rel_compressed(self, tmp_dir, data_rel):
         """
         tests ability to read compressed absolute filelist
         """
-        test_path = os.path.join(
-            os.getcwd(), os.path.dirname(__file__), "filelists/compressed_rel.zz"
-        )
-        flist = fs.read_filelist(test_path, check_exists=True, compressed=True)
-        assert flist.to_list() == test_list_rel
+        test_path = os.path.join(tmp_dir["flists"], "compressed_rel.zz")
+        flist = fs.read_filelist(test_path, compressed=True)
+        assert flist.to_list() == data_rel

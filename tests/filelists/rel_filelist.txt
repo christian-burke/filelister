@@ -1,6 +1,0 @@
-../data/sample_01.txt
-../data/sample_02.txt
-../data/sample_03.txt
-../data/sample_05.txt
-../data/sample_06.jpg
-../data/sample_07.jpg

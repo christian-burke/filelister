@@ -1,5 +1,0 @@
-../data/sample_01.txt
-../data/sample_02.txt
-../data/sample_3.txt
-../data/sample_04.txt'
-../data/sample_05.txt
