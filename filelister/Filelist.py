@@ -74,10 +74,15 @@ class Filelist:
             yield self._get_abs_path(value), self._get_rel_path(value)
 
     def _get_abs_path(self, path):
-        return self._prefixes["abs"] + path[len(self._prefixes["curr"]) :]
+        unique_path = path[len(self._prefixes["curr"]) :]
+        if self._state == "na":
+            unique_path = "/" + unique_path
+
+        return self._prefixes["abs"] + unique_path
 
     def _get_rel_path(self, path):
-        return self._prefixes["rel"] + path[len(self._prefixes["curr"]) :]
+        unique_path = path[len(self._prefixes["curr"]) :]
+        return self._prefixes["rel"] + unique_path
 
     def to_list(self):
         """Returns the Filelist as a List"""

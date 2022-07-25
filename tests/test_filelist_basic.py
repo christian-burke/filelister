@@ -122,9 +122,9 @@ class TestCreateFromType:
     def test_create_with_no_context(self, tmp_dir, data_no_ctx):
         flist = fs.Filelist(data_no_ctx)
         assert flist.to_list() == [os.path.relpath(fname) for fname in data_no_ctx]
-        assert flist._prefixes["curr"] == os.path.relpath(".")
+        assert flist._prefixes["curr"] == ""
         assert flist._prefixes["abs"] == os.path.abspath(".")
-        assert flist._prefixes["rel"] == os.path.relpath(".")
+        assert flist._prefixes["rel"] == ""
 
 
 class TestConversions:
