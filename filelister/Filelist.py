@@ -37,7 +37,7 @@ class Filelist:
             raise TypeError(f"Invalid input type: {type(input_data)}")
 
         if isinstance(input_data, (list, set, tuple)):
-            self.__build_internal(list(input_data))
+            self._build_internal(list(input_data))
 
         if isinstance(input_data, str):
             try:
@@ -47,11 +47,11 @@ class Filelist:
                 for path, _, files in os.walk(input_data):
                     for filename in files:
                         tmp.append(path + os.sep + filename)
-                self.__build_internal(tmp)
+                self._build_internal(tmp)
             except Exception as e:
                 raise e
 
-    def __build_internal(self, input_data):
+    def _build_internal(self, input_data):
         self._prefixes["curr"] = os.path.dirname(os.path.commonprefix(input_data))
 
         if self._prefixes["curr"].startswith(os.sep):
@@ -67,16 +67,16 @@ class Filelist:
             if not self.is_na()
             else ""
         )
-        self._data_storage = DataStorage(self.__loader(input_data))
+        self._data_storage = DataStorage(self._loader(input_data))
 
-    def __loader(self, input_data):
+    def _loader(self, input_data):
         for value in input_data:
-            yield self.__get_abs_path(value), self.__get_rel_path(value)
+            yield self._get_abs_path(value), self._get_rel_path(value)
 
-    def __get_abs_path(self, path):
+    def _get_abs_path(self, path):
         return self._prefixes["abs"] + path[len(self._prefixes["curr"]) :]
 
-    def __get_rel_path(self, path):
+    def _get_rel_path(self, path):
         return self._prefixes["rel"] + path[len(self._prefixes["curr"]) :]
 
     def to_list(self):
@@ -85,10 +85,10 @@ class Filelist:
             return self._data_storage[:][0]
         return self._data_storage[:][1]
 
-    def __to_abs_list(self):
+    def _to_abs_list(self):
         return self._data_storage[:][0]
 
-    def __to_rel_list(self):
+    def _to_rel_list(self):
         return self._data_storage[:][1]
 
     def __iter__(self):
@@ -176,34 +176,34 @@ class Filelist:
         if output_type is None:
             output_type = self._state
 
-        out_data = self.__normalize_paths(output_type, outfile)
+        out_data = self._normalize_paths(output_type, outfile)
 
         if compressed:
             with open(outfile, "wb") as f:
-                out_data = self.__compress(out_data)
+                out_data = self._compress(out_data)
                 f.write(out_data)
         else:
             with open(outfile, "w", encoding="utf-8") as f:
                 f.write(os.linesep.join(out_data))
 
-    def __normalize_paths(self, target_type, target_file):
+    def _normalize_paths(self, target_type, target_file):
         """
         target_type: type of Filelist to write
         target_file: path to desired Filelist location
         """
         if target_type == "abs":
-            return self.__to_abs_list()
+            return self._to_abs_list()
         if target_type == "rel":
             target_prefix = os.path.relpath(
                 self._prefixes["curr"], start=os.path.dirname(target_file)
             )
             return [
                 target_prefix + path[len(self._prefixes["rel"]) :]
-                for path in self.__to_rel_list()
+                for path in self._to_rel_list()
             ]
         raise TypeError("Desired target type is unknown")
 
-    def __compress(self, data):
+    def _compress(self, data):
         zdict = os.path.commonprefix(data).encode("utf-8")
         obj = zlib.compressobj(level=1, memLevel=9, zdict=zdict)
         data = ",".join(data).encode("utf-8")
