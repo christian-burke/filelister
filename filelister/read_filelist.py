@@ -30,7 +30,9 @@ def read_filelist(infile, compressed=False):
                 os.path.abspath(os.path.join(dirname, in_comm_pfx)),
                 start=os.getcwd(),
             )
-            if not in_comm_pfx:
+            if out_comm_pfx == ".":
+                out_comm_pfx = ""
+            if not in_comm_pfx and out_comm_pfx:
 
                 data = [
                     (out_comm_pfx + "/" + fpath[len(in_comm_pfx) :]).rstrip()
