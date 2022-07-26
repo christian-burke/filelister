@@ -8,14 +8,7 @@ import zlib
 from .Filelist import Filelist
 
 
-def process_data(dirname, fname):
-    """
-    process relative filepaths
-    """
-    return os.path.abspath(os.path.join(dirname, fname.rstrip()))
-
-
-def read_filelist(infile, check_exists=False, compressed=False, allowed_exts=None):
+def read_filelist(infile, compressed=False):
     """
     reads filelist from a .txt or .zz file
     run with relative=False and validate=False to improve runtime
@@ -37,6 +30,12 @@ def read_filelist(infile, check_exists=False, compressed=False, allowed_exts=Non
                 os.path.abspath(os.path.join(dirname, in_comm_pfx)),
                 start=os.getcwd(),
             )
+            if not in_comm_pfx:
+
+                data = [
+                    (out_comm_pfx + "/" + fpath[len(in_comm_pfx) :]).rstrip()
+                    for fpath in data
+                ]
             data = [
                 (out_comm_pfx + fpath[len(in_comm_pfx) :]).rstrip() for fpath in data
             ]
@@ -74,9 +73,9 @@ def check_infile(infile):
     Checks input filepath and returns its extension
     """
     if not os.path.exists(infile):
-        raise FileNotFoundError(f"{infile} is not a valid file")
+        raise FileNotFoundError(f"{infile} not found")
     if not os.path.isfile(infile):
-        raise TypeError(f"{infile} is not a .txt file")
+        raise TypeError(f"{infile} is not a valid file")
     ext = os.path.splitext(infile)[1]
     if ext not in (".txt", ".zz"):
         raise TypeError(f"{ext} is not an accepted file extension")

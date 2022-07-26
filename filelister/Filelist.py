@@ -75,13 +75,15 @@ class Filelist:
 
     def _get_abs_path(self, path):
         unique_path = path[len(self._prefixes["curr"]) :]
-        if self._state == "na":
+        if not unique_path.startswith("/"):
             unique_path = "/" + unique_path
 
         return self._prefixes["abs"] + unique_path
 
     def _get_rel_path(self, path):
         unique_path = path[len(self._prefixes["curr"]) :]
+        if self._state == "na" and self._prefixes["rel"] != "":
+            unique_path = "/" + unique_path
         return self._prefixes["rel"] + unique_path
 
     def to_list(self):

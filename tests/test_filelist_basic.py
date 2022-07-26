@@ -8,14 +8,6 @@ import pytest
 FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "tmp_dir")
 
 
-def rel_to_abs(tmp_path, path):
-    return os.path.abspath(os.path.join(tmp_path, path))
-
-
-def normalize_rel_path(tmp_dir, path):
-    return os.path.relpath(os.path.join(tmp_dir, path), start=os.getcwd())
-
-
 @pytest.fixture(scope="session")
 def tmp_dir(tmp_path_factory):
     data_dir = tmp_path_factory.mktemp("data")
@@ -23,6 +15,8 @@ def tmp_dir(tmp_path_factory):
     for i in range(1, 6):
         with open(str(data_dir) + f"/sample_0{i}.txt", "w") as f:
             f.write("")
+    with open(os.path.join(flist_dir, "bad_ext.png"), "w") as f:
+        f.write("")
     return {"data": data_dir, "flists": flist_dir}
 
 
@@ -198,13 +192,6 @@ class TestUtils:
                 "sample_05.txt",
             ]
 
-    def read_filelist_no_ctx_from_abs(self, tmp_dir, data_abs, data_rel):
-        test_path = os.path.join(tmp_dir["flists"], "no_ctx_abs_filelist.txt")
-        flist = fs.read_filelist(test_path)
-        assert flist.to_list == [
-            os.path.join(path, "../filelists") for path in data_rel
-        ]
-
     def test_save_no_ctx_from_rel(self, tmp_dir, data_rel):
         test_path = os.path.join(tmp_dir["flists"], "no_ctx_rel_filelist.txt")
         flist = fs.Filelist(data_rel)
@@ -218,13 +205,6 @@ class TestUtils:
                 "sample_04.txt",
                 "sample_05.txt",
             ]
-
-    def read_filelist_no_ctx_from_rel(self, tmp_dir, data_rel):
-        test_path = os.path.join(tmp_dir["flists"], "no_ctx_rel_filelist.txt")
-        flist = fs.read_filelist(test_path)
-        assert flist.to_list == [
-            os.path.join(path, "../filelists") for path in data_rel
-        ]
 
     def test_save_no_ctx_from_na(self, tmp_dir):
         test_path = os.path.join(tmp_dir["flists"], "no_ctx_na_filelist.txt")
@@ -248,11 +228,11 @@ class TestUtils:
                 "sample_05.txt",
             ]
 
-    def read_filelist_no_ctx_from_na(self, tmp_dir, data_abs):
+    def test_read_filelist_no_ctx(self, tmp_dir, data_abs):
         test_path = os.path.join(tmp_dir["flists"], "no_ctx_na_filelist.txt")
         flist = fs.read_filelist(test_path)
-        assert flist.to_list == [
-            os.path.join(path, "../filelists")
+        assert flist.to_list() == [
+            os.path.relpath(os.path.join(tmp_dir["flists"], path))
             for path in [
                 "sample_01.txt",
                 "sample_02.txt",
@@ -261,6 +241,20 @@ class TestUtils:
                 "sample_05.txt",
             ]
         ]
+
+    def test_read_file_not_found(self, tmp_dir):
+        with pytest.raises(FileNotFoundError, match=r"not found"):
+            flist = fs.read_filelist(
+                os.path.join(tmp_dir["flists"], "this_is_not_a_file")
+            )
+
+    def test_read_not_a_file(self, tmp_dir):
+        with pytest.raises(TypeError, match=r"is not a valid file"):
+            flist = fs.read_filelist(tmp_dir["flists"])
+
+    def test_read_file_bad_ext(self, tmp_dir):
+        with pytest.raises(TypeError, match=r"is not an accepted file extension"):
+            flist = fs.read_filelist(os.path.join(tmp_dir["flists"], "bad_ext.png"))
 
     def test_abs_contains_abs(self, tmp_dir, data_abs):
         flist = fs.Filelist(data_abs)

@@ -7,3 +7,4 @@ Thumbs.db
 .pytest_cache
 .coverage
 poetry.lock
+htmlcov
