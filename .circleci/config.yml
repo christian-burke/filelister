@@ -1,0 +1,19 @@
+version: 2.1
+
+orbs:
+    python: circleci/python@2.0.3
+jobs:
+    build:
+        executor: python/default
+        steps:
+            - checkout
+            - python/install-packages:
+                pkg-manager: pip
+            - run:
+                name: Tests
+                command: python -m pytest --cov
+
+workflows:
+    main:
+        jobs:
+            - build
