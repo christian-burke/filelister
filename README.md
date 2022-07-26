@@ -26,11 +26,48 @@ my_other_filelist = fs.Filelist('path/to/directory')
 ```
 
 ### From System Files
-You can also create a Filelist object by reading from a filelist saved on your system. This metod also supports all of the filelist optional arguments. You can also set ```compressed=True``` to read a compressed filelist saved by filelister.
+You can also create a Filelist object by reading from a filelist saved on your system.
 
 ```python
 my_filelist = fs.read_filelist('path/to/filelist.txt')
 ```
+
+
+## Saving a Filelist
+To save a filelist, simply call `save` on the Filelist object. Save takes three optional arguments, `outfile`, `output_type`, and `compressed`. `outfile` lets to specify the location in which to store filelist. `output_type` allows you to specify the format in which to save the filelist. The acceptable formats are `abs`, to save an absolute filelist, `rel`, to save a relative filelist, and `na` to save a list of filenames (or uncommon postfixes). Note that whe saving a relative filelist, the filepaths are converted to be relative to the location of the filelist. You can also set `compressed=True` to save the filelist with custom zlib compression.
+```python
+my_filelist.save('filelists/my_filelist.txt', relative=True, compressed=True)
+```
+
+## Compression
+A filelist can be stored using custom zlib compression by using `my_filelist.save(outfile='compressed_filelist.zz', compressed=True)`. This filelist can then be read using `fs.read_filelist('compressed_filelist.zz', compressed=True)`. Due to the nature of the compression, a compressed filelist can only be read by filelister.
+# Installation
+
+## pip (local)
+You can install this package locally via Github and pip.
+
+```bash
+git clone https://github.com/burkecp/filelister.git
+cd filelister
+pip install -e .
+```
+## pip (PyPi)
+*Coming soon*
+
+## Anaconda
+*Coming soon*
+
+# Contributors
+
+## Authors
+Simon Burke
+Christian Burke
+Refik Anadol Studio
+
+# API
+
+## In Progress
+
 
 ### Optional Arguments
 
@@ -75,40 +112,6 @@ my_filelist1.compare(my_filelist2)
  '-': {'tests/data/sample_03.txt, 'tests/data/sample_04.txt', 'tests/data/sample_05.txt'}
 }
 ```
-
-## Saving a Filelist
-To save a filelist, simply call `save` on the Filelist object. You can pass a custom `outpath` filename and set `relative=True` to save a filelist with relative paths. Note that the paths will be relative to the data depending on the directory the filelist is saved to. You can also set `compressed=True` to save the filelist with custom zlib compression. This filelist must be read using filelister.
-
-```python
-my_filelist.save('filelists/my_filelist.txt', relative=True, compressed=True)
-```
-# Installation
-
-## pip (local)
-You can install this package locally via Github and pip.
-
-```bash
-git clone https://github.com/burkecp/filelister.git
-cd filelister
-pip install -e .
-```
-## pip (PyPi)
-*Coming soon*
-
-## Anaconda
-*Coming soon*
-
-# Contributors
-
-## Authors
-Simon Burke  
-Christian Burke  
-Refik Anadol Studio
-
-# API
-
-## In Progress
-
 ### Creating a filelist
 There are two main ways to create a filelist. The first is by passing a data argument to the Filelist class. This function has 3 arguments, `data`, `allowed_exts`, and `check_exists`. Data is the data contained in the Filelist, which can be a list, set, tuple, another filelist object, or a path to a single file or a directory. The `allowed_exts` argument is optional and allows the user to select specific file extensions that will be read into a flist. It defaults to allowing .jpg, .png, and .txt files. This is especially helpful when reading an existing filelist. `check_exists` checks that each filepath in the data corresponds to an existing file on the user's system.
 ```python
@@ -136,7 +139,7 @@ my_filelist.save('tests/filelists/my_filelist.txt', relative=True)
 ```console
 filelist written to tests/filelists/my_filelist.txt
 ```
-The other way to write a filelist is using ```fs.write_filelist(data, outfile, allowed_exts=['.jpg', '.png', '.txt'], relative=True)```, a shortcut for quickly writing filelists directly from the data. 
+The other way to write a filelist is using ```fs.write_filelist(data, outfile, allowed_exts=['.jpg', '.png', '.txt'], relative=True)```, a shortcut for quickly writing filelists directly from the data.
 ```python
 fs.write_filelist('tests/data', 'tests/filelists/my_filelist.txt')
 ```
