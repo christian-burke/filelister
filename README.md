@@ -41,6 +41,23 @@ my_filelist.save('filelists/my_filelist.txt', relative=True, compressed=True)
 
 ## Compression
 A filelist can be stored using custom zlib compression by using `my_filelist.save(outfile='compressed_filelist.zz', compressed=True)`. This filelist can then be read using `fs.read_filelist('compressed_filelist.zz', compressed=True)`. Due to the nature of the compression, a compressed filelist can only be read by filelister.
+
+## Working with Filelists
+
+### Manipulating Filelists
+To convert a filelist into a python list, call `my_filelist.to_list()`.
+
+To convert an existing filelist to be relative or absolute, call `my_filelist.to_abs()` or `my_filelist.to_rel()`
+
+To check if a file is contained in a filelist, you can call `my_filelist.contains('path/to/file.txt')`. This will accept both relative and absolute paths.
+
+A filelist can also be indexed and sliced like a normal python list.
+```python
+my_filelist[1] == 'path/to/file.txt'
+```
+```python
+my_filelist[:3] == ['path/to/file00.txt', 'path/to/file01.txt', 'path/to/file02.txt']
+```
 # Installation
 
 ## pip (local)
