@@ -2,7 +2,6 @@ __pycache__
 *.swp
 *.DS_Store
 Thumbs.db
-*.txt
 *.zz
 .pytest_cache
 .coverage
