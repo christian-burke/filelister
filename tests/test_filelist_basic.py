@@ -168,7 +168,10 @@ class TestUtils:
         flist = fs.Filelist(data_rel)
         flist.save(test_path)
         with open(test_path, encoding="utf-8") as f:
-            saved_data = [os.path.relpath(os.path.join(tmp_dir["flists"], line.rstrip())) for line in f]
+            saved_data = [
+                os.path.relpath(os.path.join(tmp_dir["flists"], line.rstrip()))
+                for line in f
+            ]
             assert saved_data == data_rel
 
     def test_read_filelist_abs(self, tmp_dir, data_abs):  # depends on test_save_abs
@@ -180,6 +183,84 @@ class TestUtils:
         test_path = os.path.join(tmp_dir["flists"], "rel_filelist.txt")
         flist = fs.read_filelist(test_path)
         assert flist.to_list() == data_rel
+
+    def test_save_no_ctx_from_abs(self, tmp_dir, data_abs):
+        test_path = os.path.join(tmp_dir["flists"], "no_ctx_abs_filelist.txt")
+        flist = fs.Filelist(data_abs)
+        flist.save(test_path, output_type="na")
+        with open(test_path, encoding="utf-8") as f:
+            saved_data = [line.rstrip() for line in f]
+            assert saved_data == [
+                "sample_01.txt",
+                "sample_02.txt",
+                "sample_03.txt",
+                "sample_04.txt",
+                "sample_05.txt",
+            ]
+
+    def read_filelist_no_ctx_from_abs(self, tmp_dir, data_abs, data_rel):
+        test_path = os.path.join(tmp_dir["flists"], "no_ctx_abs_filelist.txt")
+        flist = fs.read_filelist(test_path)
+        assert flist.to_list == [
+            os.path.join(path, "../filelists") for path in data_rel
+        ]
+
+    def test_save_no_ctx_from_rel(self, tmp_dir, data_rel):
+        test_path = os.path.join(tmp_dir["flists"], "no_ctx_rel_filelist.txt")
+        flist = fs.Filelist(data_rel)
+        flist.save(test_path, output_type="na")
+        with open(test_path, encoding="utf-8") as f:
+            saved_data = [line.rstrip() for line in f]
+            assert saved_data == [
+                "sample_01.txt",
+                "sample_02.txt",
+                "sample_03.txt",
+                "sample_04.txt",
+                "sample_05.txt",
+            ]
+
+    def read_filelist_no_ctx_from_rel(self, tmp_dir, data_rel):
+        test_path = os.path.join(tmp_dir["flists"], "no_ctx_rel_filelist.txt")
+        flist = fs.read_filelist(test_path)
+        assert flist.to_list == [
+            os.path.join(path, "../filelists") for path in data_rel
+        ]
+
+    def test_save_no_ctx_from_na(self, tmp_dir):
+        test_path = os.path.join(tmp_dir["flists"], "no_ctx_na_filelist.txt")
+        flist = fs.Filelist(
+            [
+                "sample_01.txt",
+                "sample_02.txt",
+                "sample_03.txt",
+                "sample_04.txt",
+                "sample_05.txt",
+            ]
+        )
+        flist.save(test_path, output_type="na")
+        with open(test_path, encoding="utf-8") as f:
+            saved_data = [line.rstrip() for line in f]
+            assert saved_data == [
+                "sample_01.txt",
+                "sample_02.txt",
+                "sample_03.txt",
+                "sample_04.txt",
+                "sample_05.txt",
+            ]
+
+    def read_filelist_no_ctx_from_na(self, tmp_dir, data_abs):
+        test_path = os.path.join(tmp_dir["flists"], "no_ctx_na_filelist.txt")
+        flist = fs.read_filelist(test_path)
+        assert flist.to_list == [
+            os.path.join(path, "../filelists")
+            for path in [
+                "sample_01.txt",
+                "sample_02.txt",
+                "sample_03.txt",
+                "sample_04.txt",
+                "sample_05.txt",
+            ]
+        ]
 
     def test_abs_contains_abs(self, tmp_dir, data_abs):
         flist = fs.Filelist(data_abs)

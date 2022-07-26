@@ -206,6 +206,10 @@ class Filelist:
                 target_prefix + path[len(self._prefixes["rel"]) :]
                 for path in self._to_rel_list()
             ]
+        if target_type == "na":
+            if self._state == "na":
+                return self.to_list()
+            return [path[len(self._prefixes["curr"]) + 1 :] for path in self.to_list()]
         raise TypeError("Desired target type is unknown")
 
     def _compress(self, data):
