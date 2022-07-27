@@ -55,9 +55,10 @@ def benchmark_write_uncompressed(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("uncompressed_write.txt", compressed=False)
+        test_list.save("./uncompressed_write.txt", compressed=False)
         end = time.time()
         runtimes.add(end - start)
+    os.remove("./uncompressed_write.txt")
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
     print(f"Average execution time: {total_runtime/iterations} seconds")
@@ -74,9 +75,10 @@ def benchmark_write_uncompressed_rel(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("uncompressed_write_rel.txt", compressed=False)
+        test_list.save("./uncompressed_write_rel.txt", compressed=False)
         end = time.time()
         runtimes.add(end - start)
+    os.remove("./uncompressed_write.txt")
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
     print(f"Average execution time: {total_runtime/iterations} seconds")
@@ -93,9 +95,10 @@ def benchmark_write_compressed(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("compressed_write.zz", compressed=True)
+        test_list.save("./compressed_write.zz", compressed=True)
         end = time.time()
         runtimes.add(end - start)
+    os.remove("./compressed_write.zz")
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
     print(f"Average execution time: {total_runtime/iterations} seconds")
@@ -139,10 +142,15 @@ def benchmark_read_compressed(test_file, iterations):
 
 
 if __name__ == "__main__":
-    NUM_ITERATIONS = 2
-    TEST_FILE = os.path.join(
-        os.getcwd(), os.path.dirname(__file__), "filelists/national_parks.txt"
-    )
+    NUM_ITERATIONS = 3
+    TEST_FILE = os.path.join(os.path.dirname(__file__), "./sample_flist.txt")
+
+    sample_path = os.path.abspath(os.path.dirname(__file__))
+    # write test file
+    with open(TEST_FILE, "w", encoding="utf-8") as f:
+        for i in range(1000000):
+            f.write(f"/home/simon/sample_{str(i).zfill(7)}")
+
     compressed_file = os.path.splitext(TEST_FILE)[0] + "_compressed.zz"
     flist = fs.read_filelist(TEST_FILE, compressed=False)
     flist.save(compressed_file, compressed=True)
@@ -152,19 +160,22 @@ if __name__ == "__main__":
     # write benchmarks
     benchmark_write_uncompressed(flist, NUM_ITERATIONS)
     print("\n\n")
-    benchmark_write_uncompressed_rel(flist, NUM_ITERATIONS)
-    print("\n\n")
+    #    benchmark_write_uncompressed_rel(flist, NUM_ITERATIONS)
+    #    print("\n\n")
     benchmark_write_compressed(flist, NUM_ITERATIONS)
     print("\n\n\n\n")
-    NUM_ITERATIONS = 4
+    NUM_ITERATIONS = 5
     # read benchmarks
     benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
     print("\n\n")
-    benchmark_read_uncompressed("uncompressed_write_rel.txt", NUM_ITERATIONS)
+    #    benchmark_read_uncompressed("uncompressed_write_rel.txt", NUM_ITERATIONS)
     print("\n\n")
     benchmark_read_compressed(compressed_file, NUM_ITERATIONS)
     print("\n\n")
-    rel_flist = fs.read_filelist("uncompressed_write_rel.txt")
-    print(flist.compare(rel_flist))
-    print(len(rel_flist.data))
-    print(len(flist.data))
+
+    os.remove(TEST_FILE)
+    os.remove(compressed_file)
+#    rel_flist = fs.read_filelist("uncompressed_write_rel.txt")
+#    print(flist.compare(rel_flist))
+#    print(len(rel_flist.data))
+#    print(len(flist.data))
