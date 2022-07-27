@@ -54,9 +54,9 @@ my_filelist = fs.read_filelist('path/to/filelist.txt')
 
 ## Saving a Filelist
 ### Arguments
-`outfile`: specify a path to the location in which to write the filelist.
-`output_type`: specify the type of filelist to write. Options include `'abs'`, `'rel'`, and `'na'`.
-`compressed`: accepts a boolean. Pass `compressed=True` to write a compressed filelist.
+`outfile`: specify a path to the location in which to write the filelist.  
+`output_type`: specify the type of filelist to write. Options include `'abs'`, `'rel'`, and `'na'`.  
+`compressed`: accepts a boolean. Pass `compressed=True` to write a compressed filelist.  
 ### Usage
 ```python
 my_filelist.save('filelists/my_filelist.txt', output_type='abs', compressed=True)
