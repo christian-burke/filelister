@@ -59,8 +59,9 @@ class DataStorage:
 
     def __next__(self):
         try:
+            result = self[self.idx]
             self.idx += 1
-            return self[idx]
+            return result
         except IndexError:
             raise StopIteration
 
