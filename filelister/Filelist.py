@@ -31,10 +31,10 @@ class Filelist:
         # )
 
         if isinstance(input_data, Filelist):
-            raise TypeError(f"{input_data} is already a Filelist")
+            raise TypeError(colored(f"{input_data} is already a Filelist", "red"))
 
         if not isinstance(input_data, (list, set, tuple, str)):  # add iterables
-            raise TypeError(f"Invalid input type: {type(input_data)}")
+            raise TypeError(colored(f"Invalid input type: {type(input_data)}", "red"))
 
         if isinstance(input_data, (list, set, tuple)):
             self._build_internal(list(input_data))
@@ -42,7 +42,9 @@ class Filelist:
         if isinstance(input_data, str):
             try:
                 if not os.path.isdir(input_data):
-                    raise FileNotFoundError(f"{input_data} is not a directory")
+                    raise FileNotFoundError(
+                        colored(f"{input_data} is not a directory", "red")
+                    )
                 tmp = []
                 for path, _, files in os.walk(input_data):
                     for filename in files:
@@ -111,11 +113,13 @@ class Filelist:
                 if self.is_abs()
                 else self._data_storage[idx][1]
             )
-        raise TypeError(f"indices must be integers or slices, not {type(idx)}")
+        raise TypeError(
+            colored(f"indices must be integers or slices, not {type(idx)}", "red")
+        )
 
     def __contains__(self, filename):
         if not isinstance(filename, str):
-            raise TypeError("Invalid input: filename must be a string")
+            raise TypeError(colored("Invalid input: filename must be a string", "red"))
         return filename in self._data_storage
 
     def __str__(self):
@@ -166,7 +170,7 @@ class Filelist:
         Returns True if the filelist contains a given filename.
         """
         if not isinstance(filename, str):
-            raise TypeError("Invalid input: filename must be a string")
+            raise TypeError(colored("Invalid input: filename must be a string", "red"))
         return filename in self._data_storage
 
     def save(self, outfile="filelist.txt", output_type=None, compressed=False):
@@ -181,9 +185,11 @@ class Filelist:
                 na: saves only the filenames
         """
         if not isinstance(outfile, str):
-            raise TypeError(f"Output file must be str, not {type(outfile)}")
+            raise TypeError(
+                colored(f"Output file must be str, not {type(outfile)}", "red")
+            )
         if not os.path.isdir(os.path.dirname(outfile)):
-            raise ValueError("Output directory does not exist")
+            raise ValueError(colored("Output directory does not exist", "red"))
 
         if output_type is None:
             output_type = self._state
@@ -217,7 +223,7 @@ class Filelist:
             if self._state == "na":
                 return self.to_list()
             return [path[len(self._prefixes["curr"]) + 1 :] for path in self.to_list()]
-        raise TypeError("Desired target type is unknown")
+        raise TypeError(colored("Desired target type is unknown", "red"))
 
     def _compress(self, data):
         zdict = os.path.commonprefix(data).encode("utf-8")
