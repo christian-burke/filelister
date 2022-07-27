@@ -36,7 +36,7 @@ def benchmark_read_uncompressed(test_file, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        fs.read_filelist(test_file, check_exists=False, compressed=False)
+        fs.read_filelist(test_file, compressed=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -55,7 +55,7 @@ def benchmark_write_uncompressed(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("uncompressed_write.txt", compressed=False, relative=False)
+        test_list.save("uncompressed_write.txt", compressed=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -74,7 +74,7 @@ def benchmark_write_uncompressed_rel(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("uncompressed_write_rel.txt", compressed=False, relative=True)
+        test_list.save("uncompressed_write_rel.txt", compressed=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -93,7 +93,7 @@ def benchmark_write_compressed(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("compressed_write.zz", compressed=True, relative=False)
+        test_list.save("compressed_write.zz", compressed=True)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -110,8 +110,8 @@ def get_compressed_metrics(path):
     with open(path, "rb") as f:
         raw_data = f.read()
         size = sys.getsizeof(raw_data)
-    read_flist = fs.read_filelist(path, check_exists=False, compressed=True)
-    lines = len(read_flist.data)
+    read_flist = fs.read_filelist(path, compressed=True)
+    lines = len(read_flist)
     return size, lines
 
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         os.getcwd(), os.path.dirname(__file__), "filelists/national_parks.txt"
     )
     compressed_file = os.path.splitext(TEST_FILE)[0] + "_compressed.zz"
-    flist = fs.read_filelist(TEST_FILE, compressed=False, check_exists=False)
+    flist = fs.read_filelist(TEST_FILE, compressed=False)
     flist.save(compressed_file, compressed=True)
 
     print("\n\n")

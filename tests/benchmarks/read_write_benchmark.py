@@ -2,7 +2,6 @@
 Benchmarking for filelister compression
 """
 
-
 import os
 import sys
 import time
@@ -34,15 +33,9 @@ def benchmark_read_uncompressed_best(test_file, iterations):
     print(f"Total Lines: {num_lines}")
     print(f"File Size: {file_size / 1000000} MB")
     runtimes = set()
-    for _ in range(iterations):
+    for _ in tqdm(range(iterations)):
         start = time.time()
-        fs.read_filelist(
-            test_file,
-            check_exists=False,
-            compressed=False,
-            relative=False,
-            validate=False,
-        )
+        fs.read_filelist(test_file)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -60,14 +53,11 @@ def benchmark_read_uncompressed_worst(test_file, iterations):
     print(f"Total Lines: {num_lines}")
     print(f"File Size: {file_size / 1000000} MB")
     runtimes = set()
-    for _ in range(iterations):
+    for _ in tqdm(range(iterations)):
         start = time.time()
         fs.read_filelist(
             test_file,
             compressed=False,
-            relative=True,
-            validate=True,
-            check_exists=False,
         )
         end = time.time()
         runtimes.add(end - start)
@@ -82,7 +72,7 @@ def benchmark_write_uncompressed(test_list, iterations):
     print("Benchmarking Uncompressed Writes")
     print(f"Iterations: {iterations}")
     runtimes = set()
-    for _ in range(iterations):
+    for _ in tqdm(range(iterations)):
         start = time.time()
         test_list.save("uncompressed_write.txt", compressed=False, relative=False)
         end = time.time()
@@ -98,7 +88,7 @@ def benchmark_write_compressed(test_list, iterations):
     print("Benchmarking Compressed Writes")
     print(f"Iterations: {iterations}")
     runtimes = set()
-    for _ in range(iterations):
+    for _ in tqdm(range(iterations)):
         start = time.time()
         test_list.save("compressed_write.zz", compressed=True, relative=False)
         end = time.time()
@@ -114,10 +104,8 @@ def get_compressed_metrics(path):
     with open(path, "rb") as f:
         raw_data = f.read()
         size = sys.getsizeof(raw_data)
-    flist = fs.read_filelist(
-        path, check_exists=False, compressed=True, relative=False, validate=False
-    )
-    lines = len(flist.data)
+    flist = fs.read_filelist(path, compressed=True)
+    lines = len(flist)
     return size, lines
 
 
@@ -132,9 +120,9 @@ def benchmark_read_compressed_best(test_file, iterations):
     print(f"Total Lines: {num_lines}")
     print(f"File Size: {file_size / 1000000} MB")
     runtimes = set()
-    for _ in range(iterations):
+    for _ in tqdm(range(iterations)):
         start = time.time()
-        fs.read_filelist(test_file, compressed=True, relative=False, validate=False)
+        fs.read_filelist(test_file, compressed=True)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -154,9 +142,7 @@ def benchmark_read_compressed_worst(test_file, iterations):
     runtimes = set()
     for _ in range(iterations):
         start = time.time()
-        fs.read_filelist(
-            test_file, compressed=True, relative=True, check_exists=False, validate=True
-        )
+        fs.read_filelist(test_file, compressed=True)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -172,7 +158,7 @@ if __name__ == "__main__":
         os.getcwd(), os.path.dirname(__file__), "filelists/rel_national_parks.txt"
     )
     compressed_file = os.path.splitext(TEST_FILE)[0] + "_compressed.zz"
-    flist = fs.read_filelist(TEST_FILE, compressed=False, check_exists=False)
+    flist = fs.read_filelist(TEST_FILE, compressed=False)
     flist.save(compressed_file, compressed=True)
 
     print("\n\n")
@@ -194,6 +180,6 @@ if __name__ == "__main__":
     compressed_flist = fs.read_filelist(compressed_file, compressed=True)
     # print(flist.compare(compressed_flist))
     # print(len(compressed_flist.data))
-    flist = fs.read_filelist(TEST_FILE_REL, validate=False)
+    flist = fs.read_filelist(TEST_FILE_REL)
     print(len(flist.data))
     print(flist[:10])
