@@ -133,6 +133,22 @@ Simon Burke
 Christian Burke
 Refik Anadol Studio
 
+## Spec
+### Use Cases
+1. Simple read and write
+2. Ability to check if a filelist contains a path
+3. Ability to create batches from a filelist (TODO)
+4. Ability to resolve correct output paths for a relative filelist
+5. Ability to verify contents of a filelist (TODO)
+6. Convert relative/absolute filelists
+7. Ability to compare filelists (TODO)
+8. Ability to perform list + set methods on a filelist (TODO)
+
+### Runtimes
+1. O(n) read and O(n) write
+2. O(1) contains
+3. O(n) iteration
+
 # API
 
 ## In Progress
