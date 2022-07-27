@@ -101,7 +101,7 @@ A filelist can also be indexed and sliced like a normal python list. This will a
 ```python
 my_filelist[1] == 'path/to/file.txt'
 
-my_filelist[:3] == ['path/to/file00.txt', 'path/to/file01.txt', 'path/to/file02.txt']
+my_filelist[:3] == ['path/to/file01.txt', 'path/to/file02.txt', 'path/to/file03.txt']
 ```
 
 # The Vision
