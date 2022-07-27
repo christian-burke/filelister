@@ -14,6 +14,25 @@ import filelister as fs
 
 # Basic Usage
 
+## Types of Filelists
+There are three types of filelists: `abs`, `rel`, and `na`.
+### abs
+ `abs` refers to an absolute filelist, i.e.
+```python
+['path/to/file_01.txt', 'path/to/file_02.txt', 'path/to/file_03.txt']
+```
+### rel
+`rel` refers to a relative filelists, i.e.
+
+```python
+['../file_01.txt', '../file_02.txt', '../file_03.txt']
+```
+### na
+`na` refers to a filelist that is stored with no context, where filepaths are ignored and only filenames are stored i.e.
+```python
+['file_01.txt', 'file_02.txt', 'file_03.txt']
+```
+
 ## Creating a Filelist
 
 ### From Data
@@ -35,13 +54,15 @@ my_filelist = fs.read_filelist('path/to/filelist.txt')
 
 ## Saving a Filelist
 ### Arguments
-`outfile`: specify a path to the location in which to write the filelist.  
-`output_type`: specify the type of filelist to write. Options include `'abs'`, `'rel'`, and `'na'`.  
-`compressed`: accepts a boolean. Pass `compressed=True` to write a compressed filelist.  
-`na` is used to save a list of filenames (or uncommon postfixes). Note that when saving a relative filelist, the filepaths are converted to be relative to the location of the filelist.
+`outfile`: specify a path to the location in which to write the filelist.
+`output_type`: specify the type of filelist to write. Options include `'abs'`, `'rel'`, and `'na'`.
+`compressed`: accepts a boolean. Pass `compressed=True` to write a compressed filelist.
+### Usage
 ```python
-my_filelist.save('filelists/my_filelist.txt', relative=True, compressed=True)
+my_filelist.save('filelists/my_filelist.txt', output_type='abs', compressed=True)
 ```
+Note that when saving a relative filelist, the filepaths are converted to be relative to the location of the filelist.
+
 
 ## Compression
 A filelist can be stored using custom zlib compression by using
@@ -56,7 +77,7 @@ Due to the nature of the compression, a compressed filelist should only be read 
 
 ## Working with Filelists
 
-### Manipulating Filelists
+### Manipulating a Filelist
 Filelists support a number of conversions, including conversions to a native python list, to a relative filelist, and to an absolute filelist.
 ```python
 my_filelist.to_list()
@@ -83,6 +104,12 @@ my_filelist[1] == 'path/to/file.txt'
 my_filelist[:3] == ['path/to/file00.txt', 'path/to/file01.txt', 'path/to/file02.txt']
 ```
 
+# The Vision
+This tool was created to make sharing and handling filelists simple and easy for everyone.
+## Runtime/Storage efficiency info here?
+- O(1) get/lookup
+- O(n) instantiaton
+- Efficient data storage`
 # Installation
 
 ## pip (local)
