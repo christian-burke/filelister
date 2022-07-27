@@ -1,6 +1,4 @@
 """DataStorage class"""
-from ctypes import c_wchar_p
-
 from termcolor import colored
 
 
@@ -8,10 +6,9 @@ class DataStorage:
     """Class to store Filelist data"""
 
     def __init__(self, loader):
-        # self.paths = [[], []]  TODO: evaluate tradeoffs (np)
-        self.abs_paths = []
-        self.rel_paths = []
+        self.paths = {"abs": [], "rel": []}
         self.lookup = {}
+        self.counter = 0
         self.curr_idx = 0
 
         for abs_path, rel_path in loader:
@@ -19,51 +16,46 @@ class DataStorage:
                 print(colored("WARN: Path is already stored. Skipping.", "red"))
                 continue
 
-            abs_ptr = c_wchar_p(abs_path)
-            rel_ptr = c_wchar_p(rel_path)
+            self.paths["abs"].append(abs_path)
+            self.paths["rel"].append(rel_path)
 
-            self.abs_paths.append(abs_ptr)
-            self.rel_paths.append(rel_ptr)
+            self.lookup[abs_path] = self.counter
+            self.lookup[rel_path] = self.counter
 
-            self.lookup[abs_path] = (abs_ptr, len(self.abs_paths) - 1)
-            self.lookup[rel_path] = (rel_ptr, len(self.abs_paths) - 1)
+            self.counter += 1
 
-        assert len(self.abs_paths) == len(self.rel_paths)
+        assert self.counter == len(self.paths["abs"]) == len(self.paths["rel"])
 
     def __len__(self):
-        return len(self.abs_paths)
+        return self.counter
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self.__unpack_ptr_values(key)
+            return self.paths["abs"][key], self.paths["rel"][key]
         if isinstance(key, slice):
-            start, stop, step = key.indices(len(self.abs_paths))
+            start, stop, step = key.indices(self.counter)
             ret_abs = []
             ret_rel = []
             for idx in range(start, stop, step):
-                abs_path, rel_path = self.__unpack_ptr_values(idx)
+                abs_path, rel_path = self.paths["abs"][idx], self.paths["rel"][idx]
                 ret_abs.append(abs_path)
                 ret_rel.append(rel_path)
             return ret_abs, ret_rel
         raise TypeError(f"indices must be integers or slices, not {type(key)}")
 
-    def __unpack_ptr_values(self, index):
-        return self.abs_paths[index].value, self.rel_paths[index].value
-
     def __contains__(self, value):
         return value in self.lookup
 
     def __iter__(self):
-        self.idx = 0
+        self.curr_idx = 0
         return self
 
     def __next__(self):
-        try:
-            result = self[self.idx]
-            self.idx += 1
+        if self.curr_idx < self.counter:
+            result = self[self.curr_idx]
+            self.curr_idx += 1
             return result
-        except IndexError:
-            raise StopIteration
+        raise StopIteration
 
     def index(self, value):
         """Returns the index of value in DataStorage"""

@@ -33,16 +33,16 @@ class TestDataStorage:
 
     def test_initialize_paths(self):
         storage = fs.DataStorage(generator(test_data))
-        for path in storage.abs_paths + storage.rel_paths:
-            assert isinstance(path, c_wchar_p)
+        assert isinstance(storage.paths, dict)
+        for path in storage.paths["abs"] + storage.paths["rel"]:
+            assert isinstance(path, str)
 
     def test_initialize_lookup(self):
         storage = fs.DataStorage(generator(test_data))
+        assert isinstance(storage.lookup, dict)
         for entry in storage.lookup:
             assert isinstance(entry, str)
-            assert isinstance(storage.lookup[entry], tuple)
-            assert isinstance(storage.lookup[entry][0], c_wchar_p)
-            assert isinstance(storage.lookup[entry][1], int)
+            assert isinstance(storage.lookup[entry], int)
 
     def test_initialize_curr_idx(self):
         storage = fs.DataStorage(generator(test_data))
