@@ -7,3 +7,4 @@ Thumbs.db
 .coverage
 poetry.lock
 htmlcov
+README_extras.md
