@@ -53,6 +53,17 @@ class DataStorage:
     def __contains__(self, value):
         return value in self.lookup
 
+    def __iter__(self):
+        self.idx = 0
+        return self
+
+    def __next__(self):
+        try:
+            self.idx += 1
+            return self[idx]
+        except IndexError:
+            raise StopIteration
+
     def index(self, value):
         """Returns the index of value in DataStorage"""
         if value in self.lookup:
