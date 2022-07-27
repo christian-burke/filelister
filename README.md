@@ -15,20 +15,20 @@ import filelister as fs
 # Basic Usage
 
 ## Types of Filelists
-There are three types of filelists: `abs`, `rel`, and `na`.
-### abs
- `abs` refers to an absolute filelist, i.e.
+Filelister supports three formats of filelists: Absolute, Relative, and "na"
+### Absolute
+ `abs` refers to an absolute filelist
 ```python
 ['path/to/file_01.txt', 'path/to/file_02.txt', 'path/to/file_03.txt']
 ```
-### rel
-`rel` refers to a relative filelists, i.e.
+### Relative
+`rel` refers to a relative filelists
 
 ```python
 ['../file_01.txt', '../file_02.txt', '../file_03.txt']
 ```
 ### na
-`na` refers to a filelist that is stored with no context, where filepaths are ignored and only filenames are stored i.e.
+`na` refers to a filelist that is stored with no context, where filepaths are ignored and only filenames are stored
 ```python
 ['file_01.txt', 'file_02.txt', 'file_03.txt']
 ```

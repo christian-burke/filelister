@@ -113,6 +113,11 @@ class Filelist:
             )
         raise TypeError(f"indices must be integers or slices, not {type(idx)}")
 
+    def __contains__(self, filename):
+        if not isinstance(filename, str):
+            raise TypeError("Invalid input: filename must be a string")
+        return filename in self._data_storage
+
     def __str__(self):
         if self._data_storage:
             str_out = ""
