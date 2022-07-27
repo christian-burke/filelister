@@ -8,12 +8,6 @@ from termcolor import colored
 
 from .DataStorage import DataStorage
 
-# T_co = TypeVar("T_co", covariant=True)
-# T = TypeVar("T")
-# FsPath = Union[str, os.PathLike]
-# FsSeq = Sequence[FsPath]
-# Generic[T_co]
-
 
 class Filelist:
     """
@@ -91,14 +85,14 @@ class Filelist:
     def to_list(self):
         """Returns the Filelist as a List"""
         if self.is_abs():
-            return self._data_storage[:][0]
-        return self._data_storage[:][1]
+            return self._data_storage.paths["abs"]
+        return self._data_storage.paths["rel"]
 
     def _to_abs_list(self):
-        return self._data_storage[:][0]
+        return self._data_storage.paths["abs"]
 
     def _to_rel_list(self):
-        return self._data_storage[:][1]
+        return self._data_storage.paths["rel"]
 
     def __iter__(self):
         return iter(self.to_list())
@@ -165,7 +159,7 @@ class Filelist:
             self._state = "rel"
         return self
 
-    def contains(self, filename: str) -> bool:
+    def contains(self, filename):
         """
         Returns True if the filelist contains a given filename.
         """
