@@ -192,7 +192,7 @@ class Filelist:
 
         if compressed:
             with open(outfile, "wb") as f:
-                f.write(self._compress())
+                f.write(self._compress(out_data))
         else:
             with open(outfile, "w", encoding="utf-8") as f:
                 f.write(os.linesep.join(out_data))
@@ -218,10 +218,10 @@ class Filelist:
             return [path[len(self._prefixes["curr"]) + 1 :] for path in self.to_list()]
         raise TypeError(colored("Desired target type is unknown", "red"))
 
-    def _compress(self):
+    def _compress(self, data):
         zdict = self._prefixes["curr"].encode("utf-8")
         obj = zlib.compressobj(level=1, memLevel=9, zdict=zdict)
-        data = ",".join(self.to_list()).encode("utf-8")
+        data = ",".join(data).encode("utf-8")
         data_zip = obj.compress(data)
         data_zip += obj.flush()
         data_zip = zdict + b"\n" + data_zip
