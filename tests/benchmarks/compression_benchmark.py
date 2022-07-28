@@ -36,7 +36,7 @@ def benchmark_read_uncompressed(test_file, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        fs.read_filelist(test_file, compressed=False)
+        flist = fs.read_filelist(test_file, compressed=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -131,7 +131,7 @@ def benchmark_read_compressed(test_file, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        fs.read_filelist(test_file, compressed=True)
+        flist = fs.read_filelist(test_file, compressed=True)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -148,8 +148,10 @@ if __name__ == "__main__":
     sample_path = os.path.abspath(os.path.dirname(__file__))
     # write test file
     with open(TEST_FILE, "w", encoding="utf-8") as f:
-        for i in range(1000000):
-            f.write(f"/home/simon/dev/data_science/filelister/test/data/sample_{str(i).zfill(7)}")
+        for i in range(300000):
+            f.write(
+                f"/home/simon/dev/data_science/filelister/tests/data/sample_{str(i).zfill(7)}"
+            )
 
     compressed_file = os.path.splitext(TEST_FILE)[0] + "_compressed.zz"
     flist = fs.read_filelist(TEST_FILE, compressed=False)
@@ -166,11 +168,33 @@ if __name__ == "__main__":
     print("\n\n\n\n")
     NUM_ITERATIONS = 1
     # read benchmarks
-    benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
+    runtimes = set()
+    for i in tqdm(range(NUM_ITERATIONS)):
+        start = time.time()
+        flist = fs.read_filelist(TEST_FILE)
+        end = time.time()
+        runtimes.add(end - start)
+    total_runtime = sum(runtimes)
+    print(f"Total execution time: {total_runtime} seconds")
+    print(f"Average execution time: {total_runtime/NUM_ITERATIONS} seconds")
+    print(f"Max execution time: {max(runtimes)} seconds")
+    print(f"Min execution time: {min(runtimes)} seconds")
+    # benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
     print("\n\n")
     #    benchmark_read_uncompressed("uncompressed_write_rel.txt", NUM_ITERATIONS)
     print("\n\n")
-    benchmark_read_compressed(compressed_file, NUM_ITERATIONS)
+    # benchmark_read_compressed(compressed_file, NUM_ITERATIONS)
+    runtimes = set()
+    for i in tqdm(range(NUM_ITERATIONS)):
+        start = time.time()
+        flist = fs.read_filelist(compressed_file, compressed=True)
+        end = time.time()
+        runtimes.add(end - start)
+    total_runtime = sum(runtimes)
+    print(f"Total execution time: {total_runtime} seconds")
+    print(f"Average execution time: {total_runtime/NUM_ITERATIONS} seconds")
+    print(f"Max execution time: {max(runtimes)} seconds")
+    print(f"Min execution time: {min(runtimes)} seconds")
     print("\n\n")
 
     os.remove(TEST_FILE)
