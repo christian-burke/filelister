@@ -74,7 +74,7 @@ def benchmark_write_uncompressed(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("uncompressed_write.txt", compressed=False, relative=False)
+        test_list.save("uncompressed_write.txt", compressed=False)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
@@ -90,7 +90,7 @@ def benchmark_write_compressed(test_list, iterations):
     runtimes = set()
     for _ in tqdm(range(iterations)):
         start = time.time()
-        test_list.save("compressed_write.zz", compressed=True, relative=False)
+        test_list.save("compressed_write.zz", compressed=True)
         end = time.time()
         runtimes.add(end - start)
     total_runtime = sum(runtimes)

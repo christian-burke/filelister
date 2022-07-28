@@ -142,14 +142,14 @@ def benchmark_read_compressed(test_file, iterations):
 
 
 if __name__ == "__main__":
-    NUM_ITERATIONS = 3
+    NUM_ITERATIONS = 1
     TEST_FILE = os.path.join(os.path.dirname(__file__), "./sample_flist.txt")
 
     sample_path = os.path.abspath(os.path.dirname(__file__))
     # write test file
     with open(TEST_FILE, "w", encoding="utf-8") as f:
         for i in range(1000000):
-            f.write(f"/home/simon/sample_{str(i).zfill(7)}")
+            f.write(f"/home/simon/dev/data_science/filelister/test/data/sample_{str(i).zfill(7)}")
 
     compressed_file = os.path.splitext(TEST_FILE)[0] + "_compressed.zz"
     flist = fs.read_filelist(TEST_FILE, compressed=False)
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     #    print("\n\n")
     benchmark_write_compressed(flist, NUM_ITERATIONS)
     print("\n\n\n\n")
-    NUM_ITERATIONS = 5
+    NUM_ITERATIONS = 1
     # read benchmarks
     benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
     print("\n\n")

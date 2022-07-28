@@ -182,7 +182,7 @@ class Filelist:
             raise TypeError(
                 colored(f"Output file must be str, not {type(outfile)}", "red")
             )
-        if not os.path.isdir(os.path.dirname(outfile)):
+        if not os.path.isdir(os.path.dirname(os.path.abspath(outfile))):
             raise ValueError(colored("Output directory does not exist", "red"))
 
         if output_type is None:

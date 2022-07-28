@@ -18,7 +18,6 @@ def read_filelist(infile, compressed=False):
 
     try:
         check_infile(infile)
-
         if compressed:
             data = read_compressed(infile)
         else:
