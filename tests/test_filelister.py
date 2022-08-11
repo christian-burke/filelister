@@ -120,6 +120,11 @@ class TestCreateFromType:
         assert flist._prefixes["abs"] == os.path.abspath(".")
         assert flist._prefixes["rel"] == ""
 
+    def test_remove_bad_exts(self, tmp_dir, data_no_ctx):
+        test_data = data_no_ctx + ["bad_file.png", "worse_file.tiff", "good_file.jpg"]
+        flist = fs.Filelist(test_data, [".txt", ".jpg"])
+        assert flist.to_list() == data_no_ctx + ["good_file.jpg"]
+
 
 class TestConversions:
     def test_abs_to_rel(self, tmp_dir, data_abs, data_rel, data_pfx):
@@ -215,7 +220,7 @@ class TestUtils:
                 "sample_03.txt",
                 "sample_04.txt",
                 "sample_05.txt",
-            ]
+            ],
         )
         flist.save(test_path, output_type="na")
         with open(test_path, encoding="utf-8") as f:

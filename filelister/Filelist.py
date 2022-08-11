@@ -14,10 +14,12 @@ class Filelist:
     Filelist class for creating, manipulating, comparing, and exporting filelists.
     """
 
-    def __init__(self, input_data):
+    def __init__(self, input_data, accepted_exts=None):
         self._state = None  # abs, rel, or na
         self._prefixes = {"abs": "", "rel": "", "curr": ""}
         self._data_storage = None
+        if accepted_exts is None:
+            accepted_exts = False
 
         # get location of caller
         # self._caller_loc = os.path.dirname(
@@ -31,7 +33,7 @@ class Filelist:
             raise TypeError(colored(f"Invalid input type: {type(input_data)}", "red"))
 
         if isinstance(input_data, (list, set, tuple)):
-            self._build_internal(list(input_data))
+            self._build_internal(list(input_data), accepted_exts)
 
         if isinstance(input_data, str):
             try:
@@ -43,11 +45,11 @@ class Filelist:
                 for path, _, files in os.walk(input_data):
                     for filename in files:
                         tmp.append(path + os.sep + filename)
-                self._build_internal(tmp)
+                self._build_internal(tmp, accepted_exts)
             except Exception as e:
                 raise e
 
-    def _build_internal(self, input_data):
+    def _build_internal(self, input_data, accepted_exts):
         self._prefixes["curr"] = os.path.dirname(os.path.commonprefix(input_data))
 
         if self._prefixes["curr"].startswith(os.sep):
@@ -63,11 +65,17 @@ class Filelist:
             if not self.is_na()
             else ""
         )
-        self._data_storage = DataStorage(self._loader(input_data))
+        self._data_storage = DataStorage(self._loader(input_data, accepted_exts))
 
-    def _loader(self, input_data):
+    def _loader(self, input_data, accepted_exts):
         for value in input_data:
-            yield self._get_abs_path(value), self._get_rel_path(value)
+            if accepted_exts:
+                if os.path.splitext(value)[1] in accepted_exts:
+                    yield self._get_abs_path(value), self._get_rel_path(value)
+                else:
+                    print(colored(f"Invalid exception found. Skipping {value}.", "red"))
+            else:
+                yield self._get_abs_path(value), self._get_rel_path(value)
 
     def _get_abs_path(self, path):
         unique_path = path[len(self._prefixes["curr"]) :]
