@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "filelister"
 version = "0.0.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Filelister is a Python package that makes working with filelists (yes, lists of files) easy."
+authors = ["NaN Developers <nanwtf@proton.me>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
