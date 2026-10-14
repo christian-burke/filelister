@@ -10,6 +10,7 @@ htmlcov
 dist/
 .ruff_cache/
 .venv/
+.python-version
 
 PLAN.md
 AGENTS.md
