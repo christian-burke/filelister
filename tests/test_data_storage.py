@@ -1,8 +1,8 @@
 import os
-from ctypes import c_wchar_p
+
+import pytest
 
 import filelister as fs
-import pytest
 
 FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "tmp_dir")
 

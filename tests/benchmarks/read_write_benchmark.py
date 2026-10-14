@@ -6,8 +6,9 @@ import os
 import sys
 import time
 
-import filelister as fs
 from tqdm import tqdm
+
+import filelister as fs
 
 
 def get_uncompressed_metrics(path):
