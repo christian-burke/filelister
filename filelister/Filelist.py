@@ -1,6 +1,7 @@
 """
 Class to handle Filelists
 """
+
 import os
 import zlib
 

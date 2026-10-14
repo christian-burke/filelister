@@ -1,4 +1,5 @@
 """DataStorage class"""
+
 from termcolor import colored
 
 

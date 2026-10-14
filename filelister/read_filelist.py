@@ -34,7 +34,6 @@ def read_filelist(infile, compressed=False):
             if out_comm_pfx == ".":
                 out_comm_pfx = ""
             if not in_comm_pfx and out_comm_pfx:
-
                 data = [
                     (out_comm_pfx + "/" + fpath[len(in_comm_pfx) :]).rstrip()
                     for fpath in data
