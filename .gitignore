@@ -7,6 +7,7 @@ Thumbs.db
 .coverage
 poetry.lock
 htmlcov
+dist/
 
 PLAN.md
 AGENTS.md
