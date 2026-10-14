@@ -7,7 +7,7 @@ import zlib
 
 from termcolor import colored
 
-from .Filelist import Filelist
+from .filelist import Filelist
 
 
 def read_filelist(infile, compressed=False):
