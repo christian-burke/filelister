@@ -21,3 +21,19 @@ dev = [
 [build-system]
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
+
+[tool.ruff.lint]
+# for consideration: RUF, PL (with PLR2004 ignored in tests)
+# left out: PTH (we use os.path), EM/TRY003 (inline messages), D (third-person docstrings),
+# ANN (until type hints), COM/Q (formatter)
+select = [
+    "ARG", "B", "C4", "E4", "E501", "E7", "E9", "ERA", "F", "FURB", "I",
+    "ISC", "N", "NPY", "PERF", "PIE", "PT", "RET", "SIM", "T20", "TRY2", "UP",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# allow benchmarks to print results
+"tests/benchmarks/*" = ["T20"]
+# temp until "rename modules"
+"filelister/DataStorage.py" = ["N999"]
+"filelister/Filelist.py" = ["N999"]
