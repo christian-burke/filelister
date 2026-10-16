@@ -1,8 +1,8 @@
 import os
-from ctypes import c_wchar_p
+
+import pytest
 
 import filelister as fs
-import pytest
 
 FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "tmp_dir")
 
@@ -209,7 +209,7 @@ class TestDataStorage:
         assert storage[0][1] == data_rel[0]
 
     def test_setitem_slice(self, tmp_dir, data_abs, data_rel):
-        storage = fs.DataStorage(generator_new(data_abs,data_rel))
+        storage = fs.DataStorage(generator_new(data_abs, data_rel))
         storage[0] = fs.Filelist(data_abs)
         assert storage[:][0] == data_abs
         assert storage[:][1] == data_rel

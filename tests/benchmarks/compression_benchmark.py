@@ -2,13 +2,13 @@
 Benchmarking for filelister compression
 """
 
-
 import os
 import sys
 import time
 
-import filelister as fs
 from tqdm import tqdm
+
+import filelister as fs
 
 
 def get_uncompressed_metrics(path):
@@ -41,7 +41,7 @@ def benchmark_read_uncompressed(test_file, iterations):
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
+    print(f"Average execution time: {total_runtime / iterations} seconds")
     print(f"Max execution time: {max(runtimes)} seconds")
     print(f"Min execution time: {min(runtimes)} seconds")
 
@@ -61,7 +61,7 @@ def benchmark_write_uncompressed(test_list, iterations):
     os.remove("./uncompressed_write.txt")
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
+    print(f"Average execution time: {total_runtime / iterations} seconds")
     print(f"Max execution time: {max(runtimes)} seconds")
     print(f"Min execution time: {min(runtimes)} seconds")
 
@@ -81,7 +81,7 @@ def benchmark_write_uncompressed_rel(test_list, iterations):
     os.remove("./uncompressed_write.txt")
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
+    print(f"Average execution time: {total_runtime / iterations} seconds")
     print(f"Max execution time: {max(runtimes)} seconds")
     print(f"Min execution time: {min(runtimes)} seconds")
 
@@ -101,7 +101,7 @@ def benchmark_write_compressed(test_list, iterations):
     os.remove("./compressed_write.zz")
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
+    print(f"Average execution time: {total_runtime / iterations} seconds")
     print(f"Max execution time: {max(runtimes)} seconds")
     print(f"Min execution time: {min(runtimes)} seconds")
 
@@ -136,7 +136,7 @@ def benchmark_read_compressed(test_file, iterations):
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/iterations} seconds")
+    print(f"Average execution time: {total_runtime / iterations} seconds")
     print(f"Max execution time: {max(runtimes)} seconds")
     print(f"Min execution time: {min(runtimes)} seconds")
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/NUM_ITERATIONS} seconds")
+    print(f"Average execution time: {total_runtime / NUM_ITERATIONS} seconds")
     print(f"Max execution time: {max(runtimes)} seconds")
     print(f"Min execution time: {min(runtimes)} seconds")
     # benchmark_read_uncompressed(TEST_FILE, NUM_ITERATIONS)
@@ -192,7 +192,7 @@ if __name__ == "__main__":
         runtimes.add(end - start)
     total_runtime = sum(runtimes)
     print(f"Total execution time: {total_runtime} seconds")
-    print(f"Average execution time: {total_runtime/NUM_ITERATIONS} seconds")
+    print(f"Average execution time: {total_runtime / NUM_ITERATIONS} seconds")
     print(f"Max execution time: {max(runtimes)} seconds")
     print(f"Min execution time: {min(runtimes)} seconds")
     print("\n\n")

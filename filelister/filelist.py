@@ -1,12 +1,13 @@
 """
 Class to handle Filelists
 """
+
 import os
 import zlib
 
 from termcolor import colored
 
-from .DataStorage import DataStorage
+from .data_storage import DataStorage
 
 
 class Filelist:

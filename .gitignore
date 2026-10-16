@@ -7,3 +7,12 @@ Thumbs.db
 .coverage
 poetry.lock
 htmlcov
+dist/
+.ruff_cache/
+.venv/
+.python-version
+
+PLAN.md
+AGENTS.md
+CLAUDE.md
+LINT.md

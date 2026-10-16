@@ -1,25 +1,36 @@
-[tool.poetry]
+[project]
 name = "filelister"
-version = "0.0.0"
+version = "0.0.2"
 description = "Filelister is a Python package that makes working with filelists (yes, lists of files) easy."
-authors = ["NaN Developers <nanwtf@proton.me>"]
+authors = [{ name = "NaN Developers", email = "nanwtf@proton.me" }]
 readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+dependencies = [
+    "termcolor>=1.1.0,<2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-termcolor = "^1.1.0"
-
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.1.2"
-pytest-cov = "^3.0.0"
-tqdm = "^4.64.0"
-
-
-[tool.poetry.group.dev.dependencies]
-black = "^22.6.0"
-pylint = "^2.14.5"
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.8",
+    "tqdm>=4.64",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.ruff.lint]
+# for consideration: RUF, PL (with PLR2004 ignored in tests)
+# left out: PTH (we use os.path), EM/TRY003 (inline messages), D (third-person docstrings),
+# ANN (until type hints), COM/Q (formatter)
+select = [
+    "ARG", "B", "C4", "E4", "E501", "E7", "E9", "ERA", "F", "FURB", "I",
+    "ISC", "N", "NPY", "PERF", "PIE", "PT", "RET", "SIM", "T20", "TRY2", "UP",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# allow benchmarks to print results
+"tests/benchmarks/*" = ["T20"]

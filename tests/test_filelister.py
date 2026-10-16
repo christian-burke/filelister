@@ -1,9 +1,10 @@
 """Tests for Filelist"""
+
 import os
-from pathlib import Path
+
+import pytest
 
 import filelister as fs
-import pytest
 
 FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "tmp_dir")
 
