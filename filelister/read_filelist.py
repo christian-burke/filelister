@@ -5,8 +5,6 @@ functions to read filelists from text file and store in Filelist class
 import os
 import zlib
 
-from termcolor import colored
-
 from .filelist import Filelist
 
 
@@ -75,9 +73,9 @@ def check_infile(infile):
     Checks input filepath and returns its extension
     """
     if not os.path.exists(infile):
-        raise FileNotFoundError(colored(f"{infile} not found", "red"))
+        raise FileNotFoundError(f"{infile} not found")
     if not os.path.isfile(infile):
-        raise TypeError(colored(f"{infile} is not a valid file", "red"))
+        raise TypeError(f"{infile} is not a valid file")
     ext = os.path.splitext(infile)[1]
     if ext not in (".txt", ".zz"):
-        raise TypeError(colored(f"{ext} is not an accepted file extension"))
+        raise TypeError(f"{ext} is not an accepted file extension")

@@ -6,9 +6,7 @@ authors = [{ name = "NaN Developers", email = "nanwtf@proton.me" }]
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
-dependencies = [
-    "termcolor>=1.1.0,<2",
-]
+dependencies = []
 
 [dependency-groups]
 dev = [

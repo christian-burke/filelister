@@ -78,12 +78,6 @@ def generator_new(abs, rel):
         yield a, r
 
 
-def compare_color(value, color):
-    if color == "red":
-        start, stop = "\x1b[31m", "\x1b[0m\n"
-        return value.startswith(start) and value.endswith(stop)
-
-
 class TestDataStorage:
     def test_instantiation(self):
         storage = fs.DataStorage(generator(test_data))
@@ -119,7 +113,6 @@ class TestDataStorage:
         storage = fs.DataStorage(generator(dupe_test_data))
         captured = capsys.readouterr()
         assert "WARN: Path is already stored. Skipping." in captured.out
-        assert compare_color(str(captured.out), "red") == True
 
     def test_getitem_by_index(self):
         storage = fs.DataStorage(generator(test_data))

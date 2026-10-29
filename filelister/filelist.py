@@ -5,8 +5,6 @@ Class to handle Filelists
 import os
 import zlib
 
-from termcolor import colored
-
 from .data_storage import DataStorage
 
 
@@ -28,10 +26,10 @@ class Filelist:
         # )
 
         if isinstance(input_data, Filelist):
-            raise TypeError(colored(f"{input_data} is already a Filelist", "red"))
+            raise TypeError(f"{input_data} is already a Filelist")
 
         if not isinstance(input_data, (list, set, tuple, str)):  # add iterables
-            raise TypeError(colored(f"Invalid input type: {type(input_data)}", "red"))
+            raise TypeError(f"Invalid input type: {type(input_data)}")
 
         if isinstance(input_data, (list, set, tuple)):
             self._build_internal(list(input_data), accepted_exts)
@@ -39,9 +37,7 @@ class Filelist:
         if isinstance(input_data, str):
             try:
                 if not os.path.isdir(input_data):
-                    raise FileNotFoundError(
-                        colored(f"{input_data} is not a directory", "red")
-                    )
+                    raise FileNotFoundError(f"{input_data} is not a directory")
                 tmp = []
                 for path, _, files in os.walk(input_data):
                     for filename in files:
@@ -74,7 +70,7 @@ class Filelist:
                 if os.path.splitext(value)[1] in accepted_exts:
                     yield self._get_abs_path(value), self._get_rel_path(value)
                 else:
-                    print(colored(f"Invalid exception found. Skipping {value}.", "red"))
+                    print(f"Invalid exception found. Skipping {value}.")
             else:
                 yield self._get_abs_path(value), self._get_rel_path(value)
 
@@ -116,9 +112,7 @@ class Filelist:
                 if self.is_abs()
                 else self._data_storage[idx][1]
             )
-        raise TypeError(
-            colored(f"indices must be integers or slices, not {type(idx)}", "red")
-        )
+        raise TypeError(f"indices must be integers or slices, not {type(idx)}")
 
     def __setitem__(self, idx, value):
         if isinstance(idx, slice):
@@ -127,18 +121,13 @@ class Filelist:
                     raise ValueError
                 fl = Filelist(value)
             except ValueError:
-                raise ValueError(
-                    colored("Input must be the same length as the slice", "red")
-                )
+                raise ValueError("Input must be the same length as the slice")
             except Exception as e:
-                raise TypeError(colored("Invalid input for filelist", "red"))
+                raise TypeError("Invalid input for filelist")
         else:
             if not isinstance(value, str):
                 raise TypeError(
-                    colored(
-                        f"Invalid input: filename must be a string, not {type(value)}",
-                        "red",
-                    )
+                    f"Invalid input: filename must be a string, not {type(value)}"
                 )
             fl = Filelist([value])
 
@@ -146,7 +135,7 @@ class Filelist:
 
     def __contains__(self, filename):
         if not isinstance(filename, str):
-            raise TypeError(colored("Invalid input: filename must be a string", "red"))
+            raise TypeError("Invalid input: filename must be a string")
         return filename in self._data_storage
 
     def __str__(self):
@@ -154,17 +143,14 @@ class Filelist:
             str_out = ""
             for fname in self.to_list():
                 str_out += "\n" + fname
-            return colored(str_out, "cyan")
-        return colored("Empty Filelist", "red")
+            return str_out
+        return "Empty Filelist"
 
     def __repr__(self):
         idx = 0 if self.is_abs() else 1
         if len(self._data_storage) > 10:
-            return colored(
-                f"Filelist({self._data_storage[:5][idx], ..., self._data_storage[:-5][idx]})",
-                "cyan",
-            )
-        return colored(f"Filelist({str(self._data_storage[:][idx])})", "cyan")
+            return f"Filelist({self._data_storage[:5][idx], ..., self._data_storage[:-5][idx]})"
+        return f"Filelist({str(self._data_storage[:][idx])})"
 
     def is_abs(self):
         """Returns true if storing an absolute Filelist and false otherwise."""
@@ -197,7 +183,7 @@ class Filelist:
         Returns True if the filelist contains a given filename.
         """
         if not isinstance(filename, str):
-            raise TypeError(colored("Invalid input: filename must be a string", "red"))
+            raise TypeError("Invalid input: filename must be a string")
         return filename in self._data_storage
 
     def save(self, outfile="filelist.txt", output_type=None, compressed=False):
@@ -212,11 +198,9 @@ class Filelist:
                 na: saves only the filenames
         """
         if not isinstance(outfile, str):
-            raise TypeError(
-                colored(f"Output file must be str, not {type(outfile)}", "red")
-            )
+            raise TypeError(f"Output file must be str, not {type(outfile)}")
         if not os.path.isdir(os.path.dirname(os.path.abspath(outfile))):
-            raise ValueError(colored("Output directory does not exist", "red"))
+            raise ValueError("Output directory does not exist")
 
         if output_type is None:
             output_type = self._state
@@ -249,7 +233,7 @@ class Filelist:
             if self._state == "na":
                 return self.to_list()
             return [path[len(self._prefixes["curr"]) + 1 :] for path in self.to_list()]
-        raise TypeError(colored("Desired target type is unknown", "red"))
+        raise TypeError("Desired target type is unknown")
 
     def _compress(self, data):
         zdict = self._prefixes["curr"].encode("utf-8")
