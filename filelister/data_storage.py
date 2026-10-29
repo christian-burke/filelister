@@ -1,7 +1,5 @@
 """DataStorage class"""
 
-from termcolor import colored
-
 
 class DataStorage:
     """Class to store Filelist data"""
@@ -14,7 +12,7 @@ class DataStorage:
 
         for abs_path, rel_path in loader:
             if abs_path in self.lookup or rel_path in self.lookup:
-                print(colored("WARN: Path is already stored. Skipping.", "red"))
+                print("WARN: Path is already stored. Skipping.")
                 continue
 
             self.paths["abs"].append(abs_path)
