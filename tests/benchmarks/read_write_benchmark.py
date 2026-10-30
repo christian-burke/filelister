@@ -6,9 +6,9 @@ import os
 import sys
 import time
 
-from tqdm import tqdm
-
 import filelister as fs
+from filelister.Filelist import SEPARATOR
+from tqdm import tqdm
 
 
 def get_uncompressed_metrics(path):
@@ -19,7 +19,7 @@ def get_uncompressed_metrics(path):
     with open(path, "r", encoding="utf-8") as f:
         data = f.read()
         size = sys.getsizeof(data)
-        lines = len(data.split("\n"))
+        lines = len(data.split(SEPARATOR))
     return size, lines
 
 

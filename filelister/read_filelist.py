@@ -5,7 +5,7 @@ functions to read filelists from text file and store in Filelist class
 import os
 import zlib
 
-from .filelist import Filelist
+from .filelist import SEPARATOR, Filelist
 
 
 def read_filelist(infile, compressed=False):
@@ -56,7 +56,7 @@ def read_compressed(infile):
     data = obj.decompress(data)
     data += obj.flush()
 
-    data = data.decode("utf-8").split(",")
+    data = data.decode("utf-8").split(SEPARATOR)
     return data
 
 
@@ -65,7 +65,7 @@ def read_uncompressed(infile):
     reads an uncompressed filelist
     """
     with open(infile, encoding="utf-8") as f:
-        return f.read().rstrip().split(os.linesep)
+        return f.read().rstrip().split(SEPARATOR)
 
 
 def check_infile(infile):

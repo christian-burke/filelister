@@ -7,6 +7,8 @@ import zlib
 
 from .data_storage import DataStorage
 
+SEPARATOR = "\n"
+
 
 class Filelist:
     """
@@ -205,14 +207,14 @@ class Filelist:
         if output_type is None:
             output_type = self._state
 
-        out_data = self._normalize_paths(output_type, outfile)
+        target_prefix, out_data = self._normalize_paths(output_type, outfile)
 
         if compressed:
             with open(outfile, "wb") as f:
-                f.write(self._compress(out_data))
+                f.write(_compress(target_prefix, out_data))
         else:
             with open(outfile, "w", encoding="utf-8") as f:
-                f.write(os.linesep.join(out_data))
+                f.write(SEPARATOR.join(out_data))
 
     def _normalize_paths(self, target_type, target_file):
         """
@@ -220,26 +222,31 @@ class Filelist:
         target_file: path to desired Filelist location
         """
         if target_type == "abs":
-            return self._to_abs_list()
+            target_prefix = self._prefixes["abs"]
+            return target_prefix, self._to_abs_list()
         if target_type == "rel":
             target_prefix = os.path.relpath(
                 self._prefixes["curr"], start=os.path.dirname(target_file)
             )
-            return [
+            return target_prefix, [
                 target_prefix + path[len(self._prefixes["rel"]) :]
                 for path in self._to_rel_list()
             ]
         if target_type == "na":
+            target_prefix = ""
             if self._state == "na":
-                return self.to_list()
-            return [path[len(self._prefixes["curr"]) + 1 :] for path in self.to_list()]
+                return target_prefix, self.to_list()
+            return target_prefix, [
+                path[len(self._prefixes["curr"]) + 1 :] for path in self.to_list()
+            ]
         raise TypeError("Desired target type is unknown")
 
-    def _compress(self, data):
-        zdict = self._prefixes["curr"].encode("utf-8")
-        obj = zlib.compressobj(level=1, memLevel=9, zdict=zdict)
-        data = ",".join(data).encode("utf-8")
-        data_zip = obj.compress(data)
-        data_zip += obj.flush()
-        data_zip = zdict + b"\n" + data_zip
-        return data_zip
+
+def _compress(target_prefix, data):
+    zdict = target_prefix.encode("utf-8")
+    obj = zlib.compressobj(level=1, memLevel=9, zdict=zdict)
+    data = SEPARATOR.join(data).encode("utf-8")
+    data_zip = obj.compress(data)
+    data_zip += obj.flush()
+    data_zip = zdict + b"\n" + data_zip
+    return data_zip
