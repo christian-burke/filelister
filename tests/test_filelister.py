@@ -386,6 +386,42 @@ class TestCompression:
         flist = fs.read_filelist(test_path, compressed=True)
         assert flist.to_list() == data_rel
 
+    @pytest.mark.parametrize("output_type", ["abs", "rel", "na"])
+    def test_save_compressed_from_any_cwd(self, tmp_path, monkeypatch, output_type):
+        """
+        tests that a compressed filelist saves the same from any working directory
+        """
+        data_dir = os.path.join(tmp_path, "data")
+        deep_dir = os.path.join(tmp_path, "a", "b", "c")
+        os.makedirs(deep_dir)
+        test_path = os.path.join(tmp_path, "compressed.zz")
+        saved = []
+        for cwd in (tmp_path, deep_dir):
+            monkeypatch.chdir(cwd)
+            rel_paths = [
+                os.path.relpath(os.path.join(data_dir, f"sample_0{i}.txt"))
+                for i in range(1, 6)
+            ]
+            flist = fs.Filelist(rel_paths)
+            flist.save(test_path, output_type=output_type, compressed=True)
+            with open(test_path, "rb") as f:
+                saved.append(f.read())
+        assert saved[0] == saved[1]
+
+    def test_read_compressed_with_commas(self, tmp_path, monkeypatch):
+        """
+        tests ability to read compressed filelist with commas in filenames
+        """
+        monkeypatch.chdir(tmp_path)
+        data = [
+            os.path.join("data", "shot_01,v2.exr"),
+            os.path.join("data", "shot_02.exr"),
+        ]
+        test_path = os.path.join(tmp_path, "compressed_commas.zz")
+        fs.Filelist(data).save(test_path, compressed=True)
+        flist = fs.read_filelist(test_path, compressed=True)
+        assert flist.to_list() == data
+
     def test_setitem(self, tmp_dir, data_abs, data_rel):
         # test abs path
         flist = fs.Filelist(data_abs[:2])
